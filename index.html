@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Lesson 19 问路指路大闯关 | 北京版六年级英语</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { font-family: 'Quicksand', sans-serif; background: linear-gradient(145deg, #c0e0ff 0%, #b2d3f0 100%); padding: 20px; min-height: 100vh; }
+        .master-container { max-width: 1400px; margin: 0 auto; background: #fffef7; border-radius: 70px; box-shadow: 0 25px 45px rgba(0,0,0,0.2); overflow: hidden; }
+        .clay-header { background: linear-gradient(135deg, #ff9a3c, #ffc371); padding: 22px 28px; border-bottom: 8px solid #ffdd99; }
+        .title-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .clay-icon { width: 70px; height: 70px; background: #fff1c1; border-radius: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 12px 0 #c29b3a; font-size: 42px; color: #ff8c42; }
+        .title-text h1 { font-size: 2rem; font-weight: 800; color: white; text-shadow: 3px 3px 0 #b4621a; }
+        .title-text p { font-size: 1rem; color: #fff3cf; font-weight: 600; }
+        .nav-buttons { display: flex; gap: 20px; justify-content: center; margin: 20px 28px 0; flex-wrap: wrap; }
+        .nav-btn { background: #fdf8ed; border: none; padding: 12px 28px; border-radius: 80px; font-weight: 800; font-size: 1.2rem; cursor: pointer; box-shadow: 0 7px 0 #d4b87a; display: flex; align-items: center; gap: 12px; color: #a7581c; transition: 0.07s linear; }
+        .nav-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #d4b87a; }
+        .nav-btn.active { background: #ffdd99; color: #c25d00; border: 2px solid white; }
+        .stage-container { padding: 30px; background: #fef7e8; min-height: 600px; }
+        .stage-pane { display: none; animation: fadeIn 0.3s; }
+        .stage-pane.active-pane { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .preview-images-double { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px; padding: 20px; background: #f9efdc; border-radius: 60px; }
+        .preview-img { width: auto; height: auto; max-width: 280px; max-height: 200px; border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; transition: transform 0.2s; object-fit: contain; background: transparent; }
+        .preview-single { display: flex; justify-content: center; align-items: center; margin-bottom: 30px; padding: 20px; background: #f9efdc; border-radius: 60px; }
+        .preview-img-single { width: auto; height: auto; max-width: 280px; max-height: 200px; border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; transition: transform 0.2s; object-fit: contain; background: transparent; }
+        .textbook-img-small { display: block; margin: 0 auto 20px; width: 60%; max-width: 400px; border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); background: transparent; }
+        .task-blocks, .learn-blocks, .transfer-blocks { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px; }
+        .task-block, .learn-block, .transfer-step { background: #ffefcf; border-radius: 48px; padding: 20px 35px; text-align: center; cursor: pointer; flex: 1; min-width: 180px; box-shadow: 0 12px 0 #d4aa6a; transition: 0.07s linear; }
+        .task-block:active, .learn-block:active, .transfer-step:active { transform: translateY(4px); box-shadow: 0 6px 0 #d4aa6a; }
+        .sub-content { background: white; border-radius: 48px; padding: 25px; margin-top: 20px; }
+        .sentence-item { background: #faf3e0; margin: 20px 0; padding: 18px; border-radius: 48px; }
+        .eng-sentence { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; }
+        .speed-buttons { display: flex; gap: 15px; flex-wrap: wrap; margin: 15px 0; align-items: center; }
+        .speed-btn { background: #e0e7ff; border: none; padding: 8px 20px; border-radius: 40px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .record-controls { display: flex; gap: 12px; flex-wrap: wrap; margin: 10px 0; align-items: center; }
+        .record-action-btn { background: #6c9ebf; border: none; padding: 6px 16px; border-radius: 40px; font-weight: bold; cursor: pointer; color: white; }
+        .record-action-btn.recording { background: #e74c3c; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+        .evaluate-btn { background: #f39c12; border: none; padding: 10px 24px; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1rem; }
+        .ai-feedback { font-size: 0.9rem; margin-top: 12px; padding: 8px; border-radius: 28px; background: #fff4e0; }
+        .self-eval-area { margin-top: 30px; text-align: center; background: #fff0dc; border-radius: 60px; padding: 20px; }
+        .self-stars { display: flex; justify-content: center; gap: 20px; margin: 15px 0; }
+        .star-icon { font-size: 2.2rem; cursor: pointer; transition: 0.1s; color: #ccc; }
+        .star-icon.active { color: #ffbb33; text-shadow: 0 0 5px #ffa500; }
+        .check-btn { background: #30a14e; color: white; border: none; border-radius: 60px; padding: 12px 32px; font-weight: bold; cursor: pointer; margin: 15px 5px; font-size: 1rem; }
+        .match-area { display: flex; justify-content: center; gap: 8%; margin: 20px 0; position: relative; align-items: stretch; }
+        .match-col { flex: 0 0 28%; background: #f4ebdd; border-radius: 32px; padding: 15px; }
+        .match-item { background: white; margin: 12px 0; padding: 8px 12px; border-radius: 60px; cursor: pointer; text-align: center; font-weight: bold; transition: 0.05s; position: relative; z-index: 2; }
+        .match-item.selected { background: #ffd966; border: 2px solid #ffa500; }
+        .match-item.correct-match { background: #b5e3b5; }
+        #lineCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .tf-group { display: flex; gap: 20px; margin-top: 8px; }
+        .tf-btn { background: #e9ecef; border: none; padding: 6px 20px; border-radius: 40px; cursor: pointer; font-weight: bold; }
+        .tf-btn.active-true { background: #90be6d; color: white; }
+        .tf-btn.active-false { background: #f4acb7; color: white; }
+        .quiz-option { background: #f9f3e2; margin: 15px 0; padding: 15px; border-radius: 40px; }
+        .choice-option-btn { background: #e0e7ff; border: none; padding: 6px 18px; border-radius: 40px; margin: 5px; cursor: pointer; font-weight: bold; }
+        .choice-option-btn.selected-choice { background: #ffd966; }
+        .fill-word-btn { background: #e0e7ff; border: none; padding: 6px 18px; border-radius: 40px; margin: 5px; cursor: pointer; }
+        .fill-word-btn.selected-fill { background: #ffd966; }
+        .mic-permission-tip { background: #fff3e0; border: 2px solid #ffaa55; padding: 12px 20px; border-radius: 60px; text-align: center; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; }
+        .grant-mic-btn { background: #ffaa55; border: none; padding: 8px 24px; border-radius: 40px; font-weight: bold; cursor: pointer; color: white; font-size: 1rem; }
+        .practice-steps { background: #e8f5e9; padding: 15px 20px; border-radius: 30px; margin: 15px 0; font-size: 0.95rem; color: #2e7d32; }
+        .practice-steps p { margin: 5px 0; }
+        .learn-blocks-wrapper { display: none; }
+        .adventure-bg-large { display: block; margin: 0 auto 25px; width: 60%; max-width: 600px; border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .adventure-bg-small { display: block; margin: 0 auto 25px; width: 280px; max-width: 100%; border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .transfer-welcome { text-align: center; font-size: 1.5rem; font-weight: bold; color: #a7581c; margin: 20px 0; }
+        .street-map { width: 100%; max-width: 900px; display: block; margin: 15px auto; border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); background: #d9e5bf; }
+        .move-controls { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+        .move-btn { background: #ffaa55; border: none; padding: 12px 28px; border-radius: 60px; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 0 #bb7733; transition: 0.05s linear; }
+        .move-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #bb7733; }
+        .big-buttons { display: flex; gap: 30px; justify-content: center; margin-top: 20px; }
+        .big-btn { background: #30a14e; color: white; border: none; padding: 15px 40px; border-radius: 60px; font-size: 1.3rem; font-weight: bold; cursor: pointer; }
+        .warning-btn { background: #f4a261; }
+        .map-container { position: relative; display: inline-block; width: 100%; text-align: center; }
+        .character-img { position: absolute; left: 20px; top: 50%; width: 55px; transition: left 0.1s ease, top 0.1s ease; z-index: 10; pointer-events: none; transform: translateY(-50%); }
+        .car-img { position: absolute; left: 20px; top: 50%; width: 80px; transition: left 0.1s ease, top 0.1s ease; z-index: 10; pointer-events: none; transform: translateY(-50%); }
+        .reset-corner { text-align: center; margin: 20px 0; }
+        .audio-buttons { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
+        .audio-btn { background: #ffaa66; border: none; padding: 10px 20px; border-radius: 50px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 1rem; box-shadow: 0 4px 0 #cc8844; transition: 0.05s linear; }
+        .audio-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #cc8844; }
+        .full-btn { font-size: 1rem; padding: 10px 20px; }
+        .toggle-btn { background: #6c9ebf; color: white; border: none; padding: 10px 24px; border-radius: 40px; cursor: pointer; font-size: 1.1rem; font-weight: bold; margin: 5px; }
+        .dialog-text { background: #eef2fa; padding: 15px; border-radius: 30px; margin: 15px 0; text-align: center; font-weight: bold; display: none; font-size: 1rem; }
+        .task-hint { text-align: center; font-size: 1.1rem; background: #fff0d0; padding: 12px 20px; border-radius: 50px; margin: 15px 0; }
+        .word-bank { display: flex; justify-content: space-between; gap: 30px; background: #f8efda; padding: 20px; border-radius: 40px; margin: 15px 0; flex-wrap: wrap; }
+        .word-col { flex: 1; min-width: 200px; }
+        .word-col h4 { color: #c25d00; margin-bottom: 10px; }
+        .encourage-icon { font-size: 1.3rem; margin-left: 8px; vertical-align: middle; }
+    </style>
+</head>
+<body>
+<div class="master-container">
+    <div class="clay-header">
+        <div class="title-row">
+            <div class="clay-icon"><i class="fas fa-map-signs fa-beat-fade"></i></div>
+            <div class="title-text"><h1>Lesson 19 Talk about the new school<br><span style="font-size:0.9rem;">—— Asking and Showing the way</span></h1><p>谈论新学校 —— 问路和指路 · 互动任务</p></div>
+        </div>
+    </div>
+    <div class="nav-buttons"><button class="nav-btn" data-stage="learn"><i class="fas fa-book-open"></i> 📖 Let's learn</button><button class="nav-btn" data-stage="practice"><i class="fas fa-rocket"></i> 🚀 Let's practice</button><button class="nav-btn" data-stage="transfer"><i class="fas fa-lightbulb"></i> 💡 Let's say</button></div>
+    <div id="previewImagesContainer" class="preview-images-double">
+        <img id="previewImage1" src="images/text1.png" class="preview-img" alt="课文图片1" onerror="this.src='data:image/svg+xml,%3Csvg...%3E'">
+        <img id="previewImage2" src="images/text2.png" class="preview-img" alt="课文图片2" onerror="this.src='data:image/svg+xml,%3Csvg...%3E'">
+    </div>
+    <div class="stage-container">
+        <div id="learn-stage" class="stage-pane active-pane">
+            <div id="learnBlocksWrapper" class="learn-blocks-wrapper">
+                <div class="learn-blocks"><div class="learn-block" data-learn="part1"><h3>📖 Part 1</h3><p>重点词句跟读练习</p></div><div class="learn-block" data-learn="part2"><h3>📖 Part 2</h3><p>课文跟读练习</p></div></div>
+            </div>
+            <div id="learnSubContent" class="sub-content">✨ 请点击相应板块开启我们的学习之旅吧！<i class="fas fa-fist-raised encourage-icon"></i> ✨</div>
+        </div>
+        <div id="practice-stage" class="stage-pane">
+            <div id="practiceImageContainer" style="display: flex; justify-content: center; margin-bottom: 20px;"></div>
+            <div class="task-blocks"><div class="task-block" data-practice="easy"><h3>🍭 Easy</h3><p>简单模式</p></div><div class="task-block" data-practice="normal"><h3>⭐ Normal</h3><p>普通模式</p></div><div class="task-block" data-practice="hard"><h3>🔥 Hard</h3><p>困难模式</p></div></div>
+            <div id="practiceSubContent" class="sub-content"><div class="practice-steps"><p>📋 <strong>挑战步骤如下：</strong></p><p>1️⃣ 按要求完成各项练习</p><p>2️⃣ 点击 "Check the answers" 核对答案</p><p>3️⃣ 如果有错误，按提示题号修改后再次点击 "Check the answers" 核对答案</p></div>✨ 请点击上方难度块开始挑战 ✨</div>
+        </div>
+        <div id="transfer-stage" class="stage-pane">
+            <div class="transfer-blocks" id="transferBlocks"><div class="transfer-step" data-transfer-step="easyStep"><h3>🎯 Easy Step</h3><p>基础闯关</p></div><div class="transfer-step" data-transfer-step="middleStep"><h3>🚙 Middle Step</h3><p>进阶闯关</p></div><div class="transfer-step" data-transfer-step="finalStep"><h3>🏆 Final Step</h3><p>终极闯关</p></div></div>
+            <div id="transferSubContent" class="sub-content"><img src="images/adventure.png" class="adventure-bg-large" alt="闯关背景" onerror="this.style.display='none'"><div class="transfer-welcome">✨ 请点击上方闯关板块开始挑战 ✨</div></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==================== 全局函数 ====================
+let globalStream = null;
+let micPermissionReady = false;
+async function initMicrophone() {
+    try {
+        globalStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        micPermissionReady = true;
+        if (globalStream) { globalStream.getTracks().forEach(track => track.stop()); globalStream = null; }
+    } catch(err) { micPermissionReady = false; }
+}
+async function grantMicrophonePermission() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => track.stop());
+        micPermissionReady = true;
+        alert('✅ 麦克风权限已获取！现在可以开始录音练习了！');
+        return true;
+    } catch(err) { alert('❌ 无法获取麦克风权限，请检查浏览器设置后点击重试'); return false; }
+}
+initMicrophone();
+function playLocalAudio(filename) { let audio = new Audio(`audio/${filename}`); audio.play().catch(e => console.log(`音频加载失败: ${filename}`)); }
+function playAudioBySentence(sentenceId, rate) { playLocalAudio(`${sentenceId}_${rate}.mp3`); }
+function playTextAudio(sentenceIndex, rate) { playLocalAudio(`t${sentenceIndex + 1}_${rate}.mp3`); }
+function playApplause() { canvasConfetti({ particleCount: 180, spread: 70, origin: { y: 0.6 } }); }
+function playApplauseSound() { playLocalAudio('applause1.mp3'); }
+function playRandomExcellentAmazing() { const sounds = ['excellent.mp3', 'amazing.mp3']; playLocalAudio(sounds[Math.floor(Math.random() * sounds.length)]); playApplause(); }
+function playRandomEvaluation() { playRandomExcellentAmazing(); }
+function giveEvaluation(fbId) { playRandomEvaluation(); const fbDiv = document.getElementById(fbId); if(fbDiv) { fbDiv.innerHTML = "🎉 太棒了！发音很不错！继续加油！🎉"; fbDiv.style.background = "#e8f5e9"; } }
+let starClickTimer = null;
+function buildSelfStars(containerId) { 
+    let container = document.getElementById(containerId); if(!container) return; 
+    container.innerHTML = `<div class="self-stars">${[1,2,3].map(i=>`<i class="far fa-star star-icon" data-star="${i}"></i>`).join('')}</div>`;
+    let stars = container.querySelectorAll('.star-icon');
+    stars.forEach(star=>{ star.addEventListener('click',()=>{ let val = parseInt(star.dataset.star); stars.forEach((s,idx)=>{ if(idx<val) s.className="fas fa-star star-icon active"; else s.className="far fa-star star-icon"; }); if(starClickTimer) clearTimeout(starClickTimer); starClickTimer = setTimeout(() => { playApplauseSound(); }, 2000); }); });
+}
+let recorderInstances = {}, blobInstances = {};
+async function startRecording(sentenceId) {
+    if (!micPermissionReady) { const ok = await grantMicrophonePermission(); if (!ok) return; }
+    const startBtn = document.getElementById(`startRec_${sentenceId}`); const statusSpan = document.getElementById(`status_${sentenceId}`);
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        const chunks = [];
+        mediaRecorder.ondataavailable = e => { chunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'audio/webm' });
+            blobInstances[sentenceId] = blob;
+            if(statusSpan) statusSpan.innerHTML = '✅ 录音完成，可点击🎵回放对比';
+            stream.getTracks().forEach(track => track.stop());
+        };
+        mediaRecorder.start();
+        recorderInstances[sentenceId] = mediaRecorder;
+        if(startBtn) startBtn.classList.add('recording');
+        if(statusSpan) statusSpan.innerHTML = '🔴 录音中... 点击停止按钮结束';
+    } catch(err) { if(statusSpan) statusSpan.innerHTML = '❌ 录音失败，请刷新页面后重新授权麦克风'; micPermissionReady = false; }
+}
+function stopRecording(sentenceId) { const recorder = recorderInstances[sentenceId]; const startBtn = document.getElementById(`startRec_${sentenceId}`); if(recorder && recorder.state === 'recording') { recorder.stop(); if(startBtn) startBtn.classList.remove('recording'); delete recorderInstances[sentenceId]; } }
+function playMyRecording(sentenceId) { const blob = blobInstances[sentenceId]; const statusSpan = document.getElementById(`status_${sentenceId}`); if(blob) { const url = URL.createObjectURL(blob); const audio = new Audio(url); audio.play(); audio.onended = () => URL.revokeObjectURL(url); } else { if(statusSpan) statusSpan.innerHTML = '⚠️ 请先录音，再点击回放'; } }
+
+// ========= 学习理解 Part1 & Part2（完整保留） =========
+async function renderPart1(){ 
+    const container = document.getElementById('previewImagesContainer');
+    container.className = 'preview-single';
+    container.innerHTML = `<img src="images/text1.png" class="preview-img-single" alt="课文图片" onerror="this.src='data:image/svg+xml,%3Csvg...%3E'">`;
+    let subContainer = document.getElementById('learnSubContent');
+    subContainer.innerHTML = `<div class="mic-permission-tip"><i class="fas fa-microphone"></i> <span class="mic-message">🎤 首次使用请点击下方按钮，允许麦克风权限</span><button class="grant-mic-btn" id="grantMicBtn"><i class="fas fa-check-circle"></i> 点击授权麦克风</button></div><h2><i class="fas fa-comment-dots"></i> Part 1 · 重点词句跟读练习</h2><p>🎯 步骤1：点击喇叭听标准发音<br>🎯 步骤2：点击🎙️开始录音，朗读句子<br>🎯 步骤3：点击⏹️停止录音<br>🎯 步骤4：点击🎵回放自己的声音对比<br>🎯 步骤5：点击🌟获得鼓励评价</p>`;
+    const sentences = [
+        { id:'s1', text:"Excuse me, sir, can you tell me the way to the No.1 High School?" },
+        { id:'s2', text:"Walk on and then turn right at the first corner." },
+        { id:'s3', text:"The school is behind the green building over there." }
+    ];
+    sentences.forEach((s)=>{ let div = document.createElement('div'); div.className='sentence-item'; div.innerHTML = `<div class="eng-sentence"><strong>${s.text}</strong></div><div class="speed-buttons"><button class="speed-btn" data-key="${s.id}" data-rate="normal"><i class="fas fa-volume-up"></i> 🐢 Normal</button><button class="speed-btn" data-key="${s.id}" data-rate="slowly"><i class="fas fa-volume-down"></i> 🐌 Slowly</button><button class="speed-btn" data-key="${s.id}" data-rate="fast"><i class="fas fa-bolt"></i> ⚡ A little fast</button></div><div class="record-controls"><button class="record-action-btn" id="startRec_${s.id}"><i class="fas fa-microphone"></i> 🎙️ 开始录音</button><button class="record-action-btn" id="stopRec_${s.id}"><i class="fas fa-stop"></i> ⏹️ 停止录音</button><button class="record-action-btn" id="playRec_${s.id}"><i class="fas fa-play"></i> 🎵 回放我的录音</button><button class="evaluate-btn" id="evaluate_${s.id}"><i class="fas fa-star"></i> 🌟 评价</button></div><div id="status_${s.id}" class="ai-feedback" style="font-size:0.8rem;">⚪ 准备就绪，开始练习吧</div><div id="fb_${s.id}" class="ai-feedback"></div>`; subContainer.appendChild(div); });
+    document.querySelectorAll('#learnSubContent .speed-btn').forEach(btn=>btn.addEventListener('click',()=>playAudioBySentence(btn.dataset.key, btn.dataset.rate)));
+    sentences.forEach(s => { document.getElementById(`startRec_${s.id}`)?.addEventListener('click',() => startRecording(s.id)); document.getElementById(`stopRec_${s.id}`)?.addEventListener('click',() => stopRecording(s.id)); document.getElementById(`playRec_${s.id}`)?.addEventListener('click',() => playMyRecording(s.id)); document.getElementById(`evaluate_${s.id}`)?.addEventListener('click',() => giveEvaluation(`fb_${s.id}`)); });
+    document.getElementById('grantMicBtn')?.addEventListener('click', grantMicrophonePermission);
+    let evalDiv = document.createElement('div'); evalDiv.className='self-eval-area'; evalDiv.innerHTML = `<p>⭐ 给我自己打打分 ⭐</p><div id="part1SelfStars"></div>`; subContainer.appendChild(evalDiv);
+    buildSelfStars('part1SelfStars');
+}
+async function renderPart2(){
+    const container = document.getElementById('previewImagesContainer');
+    container.className = 'preview-single';
+    container.innerHTML = `<img src="images/text1.png" class="preview-img-single" alt="课文图片" onerror="this.src='data:image/svg+xml,%3Csvg...%3E'">`;
+    let subContainer = document.getElementById('learnSubContent');
+    subContainer.innerHTML = `<div class="mic-permission-tip"><i class="fas fa-microphone"></i> <span class="mic-message">🎤 首次使用请点击下方按钮，允许麦克风权限</span><button class="grant-mic-btn" id="grantMicBtn2"><i class="fas fa-check-circle"></i> 点击授权麦克风</button></div><h2><i class="fas fa-book"></i> Part 2 · 课文跟读练习</h2><img src="images/text1.png" class="textbook-img-small" alt="课文图片" onerror="this.style.display='none'"><p>🎯 步骤1：点击喇叭听标准发音<br>🎯 步骤2：点击🎙️开始录音，朗读句子<br>🎯 步骤3：点击⏹️停止录音<br>🎯 步骤4：点击🎵回放自己的声音对比<br>🎯 步骤5：点击🌟获得鼓励评价</p>`;
+    const texts = ["Do you know the way to our high school, Maomao?","How do we get there?","I don't know. Let's ask someone.","Excuse me, sir, can you tell me the way to the No.1 High School?","Walk on and then turn right at the first corner.","The school is behind the green building over there.","Do you see it?","Yes. Thank you very much. Let's go, Maomao."];
+    texts.forEach((txt, idx)=>{ let div = document.createElement('div'); div.className='sentence-item'; div.innerHTML = `<div class="eng-sentence"><strong>${txt}</strong></div><div class="speed-buttons"><button class="speed-btn-text" data-idx="${idx}" data-rate="normal"><i class="fas fa-volume-up"></i> 🐢 Normal</button><button class="speed-btn-text" data-idx="${idx}" data-rate="slowly"><i class="fas fa-volume-down"></i> 🐌 Slowly</button><button class="speed-btn-text" data-idx="${idx}" data-rate="fast"><i class="fas fa-bolt"></i> ⚡ A little fast</button></div><div class="record-controls"><button class="record-action-btn" id="startRec_text${idx}"><i class="fas fa-microphone"></i> 🎙️ 开始录音</button><button class="record-action-btn" id="stopRec_text${idx}"><i class="fas fa-stop"></i> ⏹️ 停止录音</button><button class="record-action-btn" id="playRec_text${idx}"><i class="fas fa-play"></i> 🎵 回放我的录音</button><button class="evaluate-btn" id="evaluate_text${idx}"><i class="fas fa-star"></i> 🌟 评价</button></div><div id="status_text${idx}" class="ai-feedback" style="font-size:0.8rem;">⚪ 准备就绪，开始练习吧</div><div id="fb_text${idx}" class="ai-feedback"></div>`; subContainer.appendChild(div); });
+    document.querySelectorAll('#learnSubContent .speed-btn-text').forEach(btn=>btn.addEventListener('click',()=>playTextAudio(parseInt(btn.dataset.idx), btn.dataset.rate)));
+    for(let i=0; i<texts.length; i++) { document.getElementById(`startRec_text${i}`)?.addEventListener('click',() => startRecording(`text${i}`)); document.getElementById(`stopRec_text${i}`)?.addEventListener('click',() => stopRecording(`text${i}`)); document.getElementById(`playRec_text${i}`)?.addEventListener('click',() => playMyRecording(`text${i}`)); document.getElementById(`evaluate_text${i}`)?.addEventListener('click',() => giveEvaluation(`fb_text${i}`)); }
+    document.getElementById('grantMicBtn2')?.addEventListener('click', grantMicrophonePermission);
+    let finishDiv = document.createElement('div'); finishDiv.className='self-eval-area'; finishDiv.innerHTML = `<p>⭐ 给我自己打打分 ⭐</p><div id="part2SelfStars"></div>`; subContainer.appendChild(finishDiv);
+    buildSelfStars('part2SelfStars');
+}
+
+// ==================== 健壮版提交函数（带本地队列和重试） ====================
+const SUBMIT_API = 'https://quickform.cn/api/9ykj2owatn';
+
+let pendingQueue = [];
+function loadPendingQueue() {
+    const stored = localStorage.getItem('pendingSubmissions');
+    if (stored) {
+        try {
+            pendingQueue = JSON.parse(stored);
+        } catch(e) { pendingQueue = []; }
+    }
+    if (!window.retryInterval) {
+        window.retryInterval = setInterval(processPendingQueue, 5000);
+    }
+}
+function savePendingQueue() {
+    localStorage.setItem('pendingSubmissions', JSON.stringify(pendingQueue));
+}
+function addToPendingQueue(moduleName, partName, score, maxScore, answersArray) {
+    const item = {
+        id: Date.now() + Math.random(),
+        module: moduleName,
+        part: partName,
+        score: score,
+        maxScore: maxScore,
+        answers: answersArray,
+        createdAt: new Date().toISOString(),
+        retryCount: 0
+    };
+    pendingQueue.push(item);
+    savePendingQueue();
+    console.log(`已加入队列: ${moduleName} - ${partName}`);
+    processPendingQueue();
+}
+async function processPendingQueue() {
+    if (pendingQueue.length === 0) return;
+    const queueCopy = [...pendingQueue];
+    let changed = false;
+    for (const item of queueCopy) {
+        const statusDiv = document.getElementById('submitStatus');
+        if (statusDiv) statusDiv.innerHTML = `<span class="text-yellow-600">⏳ 正在提交 ${item.module} - ${item.part} (重试 ${item.retryCount}) ...</span>`;
+        try {
+            const res = await fetch(SUBMIT_API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    module: item.module,
+                    part: item.part,
+                    score: item.score,
+                    maxScore: item.maxScore,
+                    userAnswers: { [item.part]: item.answers },
+                    submittedAt: new Date().toISOString()
+                })
+            });
+            const data = await res.json();
+            if (data && data.code === 200) {
+                const index = pendingQueue.findIndex(i => i.id === item.id);
+                if (index !== -1) {
+                    pendingQueue.splice(index, 1);
+                    changed = true;
+                }
+                if (statusDiv) statusDiv.innerHTML = `<span class="text-green-600">✅ ${item.module} - ${item.part} 提交成功！</span>`;
+                setTimeout(() => { if (statusDiv && statusDiv.innerHTML.includes('成功')) statusDiv.innerHTML = ''; }, 3000);
+                console.log(`提交成功: ${item.module} - ${item.part}`);
+            } else {
+                item.retryCount++;
+                if (statusDiv) statusDiv.innerHTML = `<span class="text-red-600">❌ ${item.module} - ${item.part} 提交失败 (重试 ${item.retryCount})</span>`;
+                console.error(`提交失败: ${item.module} - ${item.part}`, data);
+                changed = true;
+            }
+        } catch (err) {
+            item.retryCount++;
+            if (statusDiv) statusDiv.innerHTML = `<span class="text-red-600">❌ 网络错误：${err.message} (重试 ${item.retryCount})</span>`;
+            console.error(`网络错误: ${item.module} - ${item.part}`, err);
+            changed = true;
+        }
+    }
+    if (changed) savePendingQueue();
+    if (pendingQueue.length === 0 && window.retryInterval) {
+        clearInterval(window.retryInterval);
+        window.retryInterval = null;
+    }
+}
+
+async function submitPart(moduleName, partName, score, maxScore, answersArray) {
+    addToPendingQueue(moduleName, partName, score, maxScore, answersArray);
+    return true;
+}
+
+// 添加全局状态栏
+function addStatusBar() {
+    const container = document.querySelector('.master-container');
+    if (container && !document.getElementById('submitStatus')) {
+        const statusBar = document.createElement('div');
+        statusBar.id = 'submitStatus';
+        statusBar.className = 'bg-white/80 text-sm p-2 text-center border-b border-gray-200';
+        statusBar.innerHTML = '📡 准备就绪，点击 "Check the answers" 提交答案（会自动重试直到成功）';
+        container.insertBefore(statusBar, container.firstChild);
+    }
+}
+
+// 页面加载时初始化队列和状态栏
+document.addEventListener('DOMContentLoaded', () => {
+    loadPendingQueue();
+    addStatusBar();
+});
+
+// ========= Easy 模块 =========
+function renderEasy() {
+    const practiceImageContainer = document.getElementById('practiceImageContainer');
+    practiceImageContainer.style.display = 'flex';
+    practiceImageContainer.innerHTML = `<img src="images/text2.png" class="preview-img-single" alt="课文图片2" onerror="this.src='data:image/svg+xml,%3Csvg...%3E'">`;
+    let subContainer = document.getElementById('practiceSubContent');
+    subContainer.innerHTML = `<div class="practice-steps"><p>📋 <strong>挑战步骤如下：</strong></p><p>1️⃣ 按要求完成各项练习</p><p>2️⃣ 点击 "Check the answers" 核对答案</p><p>3️⃣ 如果有错误，按提示题号修改后再次点击 "Check the answers" 核对答案</p></div>
+    <h2><i class="fas fa-candy-cane"></i> Easy 简单模式</h2>
+    <div><h3>📝 一、单项选择</h3><div id="easyChoice"></div><button class="check-btn" id="checkEasyChoice">✅ Check the answers</button><div id="easyChoiceResult" class="ai-feedback"></div></div>
+    <div style="margin-top:30px;"><h3>📝 二、判断对错 (True / False)</h3><div id="tfList"></div><button class="check-btn" id="checkTfBtn">✅ Check the answers</button><div id="tfResult" class="ai-feedback"></div></div>
+    <div class="self-eval-area"><p>⭐ 给我自己打打分 ⭐</p><div id="easySelfStars"></div></div>`;
+    
+    let easyQuestions = [
+        { q:"1. Maomao and Baobao are at the ______.", opts:["A. park","B. school gate","C. library"], correct:1 },
+        { q:"2. The students are wearing uniforms in ______ colours.", opts:["A. different","B. same","C. red"], correct:0 },
+        { q:"3. Maomao likes the ______ uniform.", opts:["A. red","B. blue","C. green"], correct:1 },
+        { q:"4. Maomao and Baobao are going to be ______ at this school soon.", opts:["A. new students","B. teachers","C. visitors"], correct:0 },
+        { q:"5. The school Open Day is this ______.", opts:["A. Sunday","B. Saturday","C. Friday"], correct:1 },
+        { q:"6. They can come to the school between ______ and ______.", opts:["A. 8 am; 3 pm","B. 9 am; 4 pm","C. 10 am; 5 pm"], correct:1 }
+    ];
+    let easyAnswers = [null,null,null,null,null,null];
+    let choiceDiv = document.getElementById('easyChoice');
+    easyQuestions.forEach((item,idx)=>{ let qdiv = document.createElement('div'); qdiv.className='quiz-option'; qdiv.innerHTML=`<p><strong>${item.q}</strong></p><div style="display:flex; gap:12px; flex-wrap:wrap;">${item.opts.map((opt,oidx)=>`<button class="choice-option-btn" data-easyidx="${idx}" data-val="${oidx}">${opt}</button>`).join('')}</div>`; choiceDiv.appendChild(qdiv); });
+    document.querySelectorAll('[data-easyidx]').forEach(btn=>{ btn.addEventListener('click',()=>{ let idx=btn.dataset.easyidx; let val=parseInt(btn.dataset.val); easyAnswers[idx]=val; document.querySelectorAll(`[data-easyidx="${idx}"]`).forEach(b=>b.classList.remove('selected-choice')); btn.classList.add('selected-choice'); }); });
+    
+    let tfQuestions = ["1. The students wear uniforms in different colours.","2. Maomao likes the blue uniform.","3. The guard lets them go into the school right away.","4. The Open Day is this Sunday."];
+    let tfAnswers = [true, true, false, false];
+    let tfUser = [null,null,null,null];
+    let tfDiv = document.getElementById('tfList'); tfDiv.innerHTML='';
+    tfQuestions.forEach((q,idx)=>{ let qdiv = document.createElement('div'); qdiv.className='sentence-item'; qdiv.innerHTML = `<p><strong>${q}</strong></p><div class="tf-group"><button class="tf-btn" data-tfidx="${idx}" data-val="true">✔️ True</button><button class="tf-btn" data-tfidx="${idx}" data-val="false">❌ False</button></div>`; tfDiv.appendChild(qdiv); });
+    document.querySelectorAll('.tf-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ let idx=btn.dataset.tfidx; let val=btn.dataset.val==='true'; tfUser[idx]=val; document.querySelectorAll(`.tf-btn[data-tfidx='${idx}']`).forEach(b=>b.classList.remove('active-true','active-false')); btn.classList.add(val?'active-true':'active-false'); }); });
+    
+    function trySubmitChoice() {
+        let choiceDetails = [];
+        let choiceScore = 0;
+        easyQuestions.forEach((q, i) => {
+            let isCorrect = (easyAnswers[i] === q.correct);
+            choiceDetails.push(isCorrect);
+            if (isCorrect) choiceScore += 5;
+        });
+        let maxScore = easyQuestions.length * 5;
+        submitPart('Easy', 'choice', choiceScore, maxScore, choiceDetails);
+    }
+    function trySubmitTF() {
+        let tfDetails = [];
+        let tfScore = 0;
+        tfAnswers.forEach((correct, i) => {
+            let isCorrect = (tfUser[i] === correct);
+            tfDetails.push(isCorrect);
+            if (isCorrect) tfScore += 5;
+        });
+        let maxScore = tfAnswers.length * 5;
+        submitPart('Easy', 'trueFalse', tfScore, maxScore, tfDetails);
+    }
+    
+    document.getElementById('checkEasyChoice').onclick = () => {
+        let wrong=[];
+        easyQuestions.forEach((_,i)=>{ if(easyAnswers[i]!==easyQuestions[i].correct) wrong.push(i+1); });
+        if(wrong.length===0 && !easyAnswers.includes(null)){
+            document.getElementById('easyChoiceResult').innerHTML="🎉 Perfect! 单项选择全对！🎉";
+            playRandomExcellentAmazing();
+        } else {
+            document.getElementById('easyChoiceResult').innerHTML=`🌼 Try again. 第 ${wrong.join(',')} 题答案有误，请修改。`;
+        }
+        trySubmitChoice();
+    };
+    document.getElementById('checkTfBtn').onclick = () => {
+        let wrong=[];
+        tfAnswers.forEach((ans,i)=>{ if(tfUser[i]!==ans) wrong.push(i+1); });
+        if(wrong.length===0 && !tfUser.includes(null)){
+            document.getElementById('tfResult').innerHTML="🎉 Perfect! 判断全对！🎉";
+            playRandomExcellentAmazing();
+        } else {
+            document.getElementById('tfResult').innerHTML=`🌼 Try again. 第 ${wrong.join(',')} 题有误，请修改后再检查。`;
+        }
+        trySubmitTF();
+    };
+    buildSelfStars('easySelfStars');
+}
+
+// ========= Normal 模块（连线功能完整保留） =========
+let lineCanvas = null;
+let currentMatchPairs = {};
+let leftItemsGlobal = [], rightItemsFixed = [], correctMapGlobal = {};
+let isCheckModeActive = false;
+let selectedSide = null;
+let selectedIndex = null;
+
+function drawAllLines() {
+    if (!lineCanvas) return;
+    const canvas = lineCanvas;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const leftDivs = document.querySelectorAll('#leftMatchItems .match-item');
+    const rightDivs = document.querySelectorAll('#rightMatchItems .match-item');
+    if (!leftDivs.length || !rightDivs.length) return;
+    const canvasRect = canvas.getBoundingClientRect();
+    for (let leftIdx in currentMatchPairs) {
+        const rightText = currentMatchPairs[leftIdx];
+        const leftEl = leftDivs[leftIdx];
+        const rightEl = Array.from(rightDivs).find(el => el.innerText === rightText);
+        if (leftEl && rightEl) {
+            const leftRect = leftEl.getBoundingClientRect();
+            const rightRect = rightEl.getBoundingClientRect();
+            const startX = leftRect.right - canvasRect.left;
+            const startY = (leftRect.top + leftRect.bottom) / 2 - canvasRect.top;
+            const endX = rightRect.left - canvasRect.left;
+            const endY = (rightRect.top + rightRect.bottom) / 2 - canvasRect.top;
+            const leftText = leftItemsGlobal[leftIdx];
+            const correctChinese = correctMapGlobal[leftText];
+            const isCorrect = (rightText === correctChinese);
+            let lineColor = '#1e88e5';
+            if (isCheckModeActive && !isCorrect) {
+                lineColor = 'red';
+            }
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.strokeStyle = lineColor;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            const angle = Math.atan2(endY - startY, endX - startX);
+            const arrowSize = 10;
+            const arrowX = endX - arrowSize * 0.7 * Math.cos(angle);
+            const arrowY = endY - arrowSize * 0.7 * Math.sin(angle);
+            ctx.fillStyle = lineColor;
+            ctx.beginPath();
+            ctx.moveTo(arrowX, arrowY);
+            ctx.lineTo(arrowX - arrowSize * 0.5 * Math.cos(angle - Math.PI/6), arrowY - arrowSize * 0.5 * Math.sin(angle - Math.PI/6));
+            ctx.lineTo(arrowX - arrowSize * 0.5 * Math.cos(angle + Math.PI/6), arrowY - arrowSize * 0.5 * Math.sin(angle + Math.PI/6));
+            ctx.fill();
+        }
+    }
+}
+function updateMatchColors() {
+    const leftDivs = document.querySelectorAll('#leftMatchItems .match-item');
+    const rightDivs = document.querySelectorAll('#rightMatchItems .match-item');
+    leftDivs.forEach(el => el.classList.remove('correct-match'));
+    rightDivs.forEach(el => el.classList.remove('correct-match'));
+    for (let leftIdx in currentMatchPairs) {
+        const rightText = currentMatchPairs[leftIdx];
+        const leftText = leftItemsGlobal[leftIdx];
+        const correctChinese = correctMapGlobal[leftText];
+        if (rightText === correctChinese) {
+            const leftEl = leftDivs[leftIdx];
+            if (leftEl) leftEl.classList.add('correct-match');
+            const rightEl = Array.from(rightDivs).find(el => el.innerText === rightText);
+            if (rightEl) rightEl.classList.add('correct-match');
+        }
+    }
+}
+function keepOnlyCorrectMatches() {
+    const newPairs = {};
+    for (let leftIdx in currentMatchPairs) {
+        const rightText = currentMatchPairs[leftIdx];
+        const leftText = leftItemsGlobal[leftIdx];
+        const correctChinese = correctMapGlobal[leftText];
+        if (rightText === correctChinese) {
+            newPairs[leftIdx] = rightText;
+        }
+    }
+    currentMatchPairs = newPairs;
+}
+function resetToEditMode() {
+    isCheckModeActive = false;
+    keepOnlyCorrectMatches();
+    document.querySelectorAll('#leftMatchItems .match-item, #rightMatchItems .match-item').forEach(el => el.style.background = '');
+    selectedSide = null;
+    selectedIndex = null;
+    drawAllLines();
+    updateMatchColors();
+    document.getElementById('matchResult').innerHTML = '';
+}
+
+function renderNormal() {
+    const practiceImageContainer = document.getElementById('practiceImageContainer');
+    practiceImageContainer.style.display = 'flex';
+    practiceImageContainer.innerHTML = `<img src="images/text2.png" class="preview-img-single" alt="课文图片2" onerror="this.src='data:image/svg+xml,%3Csvg...%3E'">`;
+    let subContainer = document.getElementById('practiceSubContent');
+    subContainer.innerHTML = `<div class="practice-steps"><p>📋 <strong>挑战步骤如下：</strong></p><p>1️⃣ 按要求完成各项练习</p><p>2️⃣ 点击 "Check the answers" 核对答案</p><p>3️⃣ 如果有错误，按提示题号修改后再次点击 "Check the answers" 核对答案</p></div>
+    <h2><i class="fas fa-star"></i> Normal 普通模式</h2>
+    <div><h3>🔗 一、连线匹配 (左侧英文 ↔ 右侧中文)</h3><div class="match-area" style="position:relative;"><div class="match-col"><h4>🇬🇧 A栏(英文)</h4><div id="leftMatchItems"></div></div><div class="match-col"><h4>🇨🇳 B栏(中文)</h4><div id="rightMatchItems"></div></div><canvas id="lineCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas></div><button class="check-btn" id="checkMatchBtn">✅ Check the answers</button><div id="matchResult" class="ai-feedback"></div></div>
+    <div style="margin-top:30px;"><h3>📝 二、单项选择</h3><div id="normalChoice"></div><button class="check-btn" id="checkNormalChoice">✅ Check the answers</button><div id="normalChoiceResult" class="ai-feedback"></div></div>
+    <div class="self-eval-area"><p>⭐ 给我自己打打分 ⭐</p><div id="normalSelfStars"></div></div>`;
+    
+    let leftItems = ["1. Here we are.","2. different colours","3. go well with","4. go inside and have a look","5. Open Day","6. between 9 am and 4 pm","7. Welcome to our school!","8. young men"];
+    let rightItemsFixedOrder = ["A. 搭配的很好","B. 年轻人","C. 开放日","D. 我们到了","E. 上午9点到下午4点之间","F. 欢迎来到我们学校！","G. 进去看一看","H. 不同的颜色"];
+    let correctMap = {"1. Here we are.":"D. 我们到了","2. different colours":"H. 不同的颜色","3. go well with":"A. 搭配的很好","4. go inside and have a look":"G. 进去看一看","5. Open Day":"C. 开放日","6. between 9 am and 4 pm":"E. 上午9点到下午4点之间","7. Welcome to our school!":"F. 欢迎来到我们学校！","8. young men":"B. 年轻人"};
+    leftItemsGlobal = leftItems;
+    rightItemsFixed = rightItemsFixedOrder;
+    correctMapGlobal = correctMap;
+    currentMatchPairs = {};
+    isCheckModeActive = false;
+    selectedSide = null;
+    selectedIndex = null;
+    let leftDiv = document.getElementById('leftMatchItems'); let rightDiv = document.getElementById('rightMatchItems');
+    leftDiv.innerHTML = ''; rightDiv.innerHTML = '';
+    leftItems.forEach((l, idx) => { let el = document.createElement('div'); el.className = 'match-item'; el.innerText = l; el.dataset.leftIdx = idx; el.addEventListener('click', (e) => { if (isCheckModeActive) resetToEditMode(); document.querySelectorAll('#leftMatchItems .match-item, #rightMatchItems .match-item').forEach(elm => elm.style.background = ''); el.style.background = '#ffd966'; selectedSide = 'left'; selectedIndex = idx; }); leftDiv.appendChild(el); });
+    rightItemsFixedOrder.forEach((r, idx) => { let el = document.createElement('div'); el.className = 'match-item'; el.innerText = r; el.dataset.rightIdx = idx; el.addEventListener('click', (e) => { if (isCheckModeActive) resetToEditMode(); if (selectedSide === 'left' && selectedIndex !== null) { const leftIdx = selectedIndex; const rightText = r; currentMatchPairs[leftIdx] = rightText; document.querySelectorAll('#leftMatchItems .match-item, #rightMatchItems .match-item').forEach(elm => elm.style.background = ''); selectedSide = null; selectedIndex = null; drawAllLines(); updateMatchColors(); } else { document.querySelectorAll('#leftMatchItems .match-item, #rightMatchItems .match-item').forEach(elm => elm.style.background = ''); el.style.background = '#ffd966'; selectedSide = 'right'; selectedIndex = idx; } }); rightDiv.appendChild(el); });
+    const leftItemsElements = document.querySelectorAll('#leftMatchItems .match-item');
+    leftItemsElements.forEach((el, idx) => { const newEl = el.cloneNode(true); el.parentNode.replaceChild(newEl, el); newEl.addEventListener('click', (e) => { if (isCheckModeActive) resetToEditMode(); if (selectedSide === 'right' && selectedIndex !== null) { const leftIdx = idx; const rightText = rightItemsFixedOrder[selectedIndex]; currentMatchPairs[leftIdx] = rightText; document.querySelectorAll('#leftMatchItems .match-item, #rightMatchItems .match-item').forEach(elm => elm.style.background = ''); selectedSide = null; selectedIndex = null; drawAllLines(); updateMatchColors(); } else { document.querySelectorAll('#leftMatchItems .match-item, #rightMatchItems .match-item').forEach(elm => elm.style.background = ''); newEl.style.background = '#ffd966'; selectedSide = 'left'; selectedIndex = idx; } }); });
+    const matchArea = document.querySelector('.match-area');
+    lineCanvas = document.getElementById('lineCanvas');
+    function resizeCanvas() { if (lineCanvas && matchArea) { lineCanvas.width = matchArea.clientWidth; lineCanvas.height = matchArea.clientHeight; drawAllLines(); } }
+    window.addEventListener('resize', resizeCanvas); setTimeout(resizeCanvas, 100);
+    
+    let choiceQ = [
+        { q:"1. Why are the students wearing different coloured uniforms?", opts:["A. They like different colours.","B. They are in different grades.","C. They have different hobbies."], correct:1 },
+        { q:"2. Maomao likes the blue uniform because ______.", opts:["A. it looks nice and matches his new sneakers","B. it is his favourite colour","C. it is the cheapest"], correct:0 },
+        { q:"3. The guard says they can come to the school on ______.", opts:["A. Monday","B. this Saturday","C. this Sunday"], correct:1 },
+        { q:"4. They can come to the school between ______.", opts:["A. 8 am and 3 pm","B. 9 am and 4 pm","C. 10 am and 5 pm"], correct:1 }
+    ];
+    let choiceAnswers = [null,null,null,null];
+    let choiceDivN = document.getElementById('normalChoice');
+    choiceQ.forEach((item,idx)=>{ let qdiv = document.createElement('div'); qdiv.className='quiz-option'; qdiv.innerHTML=`<p><strong>${item.q}</strong></p><div style="display:flex; gap:12px; flex-wrap:wrap;">${item.opts.map((opt,oidx)=>`<button class="choice-option-btn" data-choiceidx="${idx}" data-val="${oidx}">${opt}</button>`).join('')}</div>`; choiceDivN.appendChild(qdiv); });
+    document.querySelectorAll('.choice-option-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ let idx=btn.dataset.choiceidx; let val=parseInt(btn.dataset.val); choiceAnswers[idx]=val; document.querySelectorAll(`.choice-option-btn[data-choiceidx="${idx}"]`).forEach(b=>b.classList.remove('selected-choice')); btn.classList.add('selected-choice'); }); });
+    
+    function trySubmitMatching() {
+        let matchingDetails = [];
+        for (let i=0; i<leftItems.length; i++) {
+            let matched = currentMatchPairs[i];
+            let isCorrect = (matched === correctMap[leftItems[i]]);
+            matchingDetails.push(isCorrect);
+        }
+        let score = matchingDetails.filter(c => c).length * 5;
+        let maxScore = leftItems.length * 5;
+        submitPart('Normal', 'matching', score, maxScore, matchingDetails);
+    }
+    function trySubmitNormalChoice() {
+        let choiceDetails = [];
+        choiceQ.forEach((q, i) => {
+            let isCorrect = (choiceAnswers[i] === q.correct);
+            choiceDetails.push(isCorrect);
+        });
+        let score = choiceDetails.filter(c => c).length * 5;
+        let maxScore = choiceQ.length * 5;
+        submitPart('Normal', 'choice', score, maxScore, choiceDetails);
+    }
+    
+    document.getElementById('checkMatchBtn').onclick = () => {
+        let wrongNumbers = [];
+        for (let i = 0; i < leftItems.length; i++) {
+            let matchedChinese = currentMatchPairs[i];
+            if (!matchedChinese) { wrongNumbers.push(leftItems[i].split('.')[0]); continue; }
+            if (matchedChinese !== correctMap[leftItems[i]]) wrongNumbers.push(leftItems[i].split('.')[0]);
+        }
+        if (wrongNumbers.length === 0 && Object.keys(currentMatchPairs).length === leftItems.length) {
+            document.getElementById('matchResult').innerHTML = "🎉 Perfect! 连线全对！🎉";
+            playRandomExcellentAmazing();
+            isCheckModeActive = true;
+            drawAllLines();
+        } else {
+            document.getElementById('matchResult').innerHTML = `🌼 有错误，请修改第 ${wrongNumbers.join(',')} 题。再试试看！`;
+            isCheckModeActive = true;
+            drawAllLines();
+        }
+        updateMatchColors();
+        trySubmitMatching();
+    };
+    document.getElementById('checkNormalChoice').onclick = () => {
+        let wrong=[];
+        choiceQ.forEach((_,i)=>{ if(choiceAnswers[i]!==choiceQ[i].correct) wrong.push(i+1); });
+        if(wrong.length===0 && !choiceAnswers.includes(null)){
+            document.getElementById('normalChoiceResult').innerHTML="🎉 Perfect! 单项选择全对！🎉";
+            playRandomExcellentAmazing();
+        } else {
+            document.getElementById('normalChoiceResult').innerHTML=`🌼 Try again. 第 ${wrong.join(',')} 题答案有误，请修改。`;
+        }
+        trySubmitNormalChoice();
+    };
+    buildSelfStars('normalSelfStars');
+}
+
+// ========= Hard 模块 =========
+function renderHard() {
+    const practiceImageContainer = document.getElementById('practiceImageContainer');
+    practiceImageContainer.style.display = 'flex';
+    practiceImageContainer.innerHTML = `<img src="images/text2.png" class="preview-img-single" alt="课文图片2" onerror="this.src='data:image/svg+xml,%3Csvg...%3E'">`;
+    let subContainer = document.getElementById('practiceSubContent');
+    subContainer.innerHTML = `<div class="practice-steps"><p>📋 <strong>挑战步骤如下：</strong></p><p>1️⃣ 按要求完成各项练习</p><p>2️⃣ 点击 "Check the answers" 核对答案</p><p>3️⃣ 如果有错误，按提示题号修改后再次点击 "Check the answers" 核对答案</p></div>
+    <h2><i class="fas fa-fire"></i> Hard 困难模式</h2>
+    <div><h3>📝 一、单项选择（细节理解）</h3><div id="hardChoice"></div><button class="check-btn" id="checkHardChoice">✅ Check the answers</button><div id="hardChoiceResult" class="ai-feedback"></div></div>
+    <div style="margin-top:30px;"><h3>📖 二、选词填空</h3><div id="hardGap"></div><button class="check-btn" id="checkHardGap">✅ Check the answers</button><div id="hardGapResult" class="ai-feedback"></div></div>
+    <div class="self-eval-area"><p>⭐ 给我自己打打分 ⭐</p><div id="hardSelfStars"></div></div>`;
+    let hq = [
+        { q:"1. Why are the students wearing different coloured uniforms?", opts:["A. They choose their favourite colours.","B. They are in different grades.","C. They wear different colours on different days."], correct:1 },
+        { q:"2. Maomao likes the blue uniform because ______.", opts:["A. it is the most popular colour","B. it matches his new sneakers","C. he has no other clothes to wear"], correct:1 },
+        { q:"3. When is the school Open Day?", opts:["A. This Sunday","B. This Saturday","C. Next Saturday"], correct:1 },
+        { q:"4. What time can Maomao and Baobao come on Open Day?", opts:["A. At 8:30 am","B. At 2:00 pm","C. At 4:30 pm"], correct:1 }
+    ];
+    let hardAnswers = [null,null,null,null];
+    let hDiv = document.getElementById('hardChoice');
+    hq.forEach((q,idx)=>{ let qdiv = document.createElement('div'); qdiv.className='quiz-option'; qdiv.innerHTML=`<p><strong>${q.q}</strong></p><div style="display:flex; gap:12px; flex-wrap:wrap;">${q.opts.map((opt,oidx)=>`<button class="choice-option-btn" data-hchoice="${idx}" data-hval="${oidx}">${opt}</button>`).join('')}</div>`; hDiv.appendChild(qdiv); });
+    document.querySelectorAll('[data-hchoice]').forEach(btn=>{ btn.addEventListener('click',()=>{ let idx=btn.dataset.hchoice; let val=parseInt(btn.dataset.hval); hardAnswers[idx]=val; document.querySelectorAll(`[data-hchoice="${idx}"]`).forEach(b=>b.classList.remove('selected-choice')); btn.classList.add('selected-choice'); }); });
+    
+    let words = ["different","soon","nice","look","Open Day"];
+    let blanks = ["1. Those students are wearing uniforms in ______ colours.","2. The blue one looks ______.","3. We're going to be new students at this school ______.","4. Can we go inside and have a ______?","5. It's our ______ this Saturday."];
+    let correctFill = ["different","nice","soon","look","Open Day"];
+    let userFill = [null,null,null,null,null];
+    let gapDiv = document.getElementById('hardGap');
+    blanks.forEach((b,idx)=>{ let div = document.createElement('div'); div.className='sentence-item'; div.innerHTML=`<p>${b}</p><div style="display:flex; gap:8px; flex-wrap:wrap;">${words.map(w=>`<button class="fill-word-btn" data-fillidx="${idx}" data-word="${w}">${w}</button>`).join('')}</div>`; gapDiv.appendChild(div); });
+    document.querySelectorAll('.fill-word-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ let idx=btn.dataset.fillidx; let word=btn.dataset.word; userFill[idx]=word; document.querySelectorAll(`.fill-word-btn[data-fillidx="${idx}"]`).forEach(b=>b.classList.remove('selected-fill')); btn.classList.add('selected-fill'); }); });
+    
+    function trySubmitHardChoice() {
+        let choiceDetails = [];
+        hq.forEach((q, i) => {
+            let isCorrect = (hardAnswers[i] === q.correct);
+            choiceDetails.push(isCorrect);
+        });
+        let score = choiceDetails.filter(c => c).length * 5;
+        let maxScore = hq.length * 5;
+        submitPart('Hard', 'choice', score, maxScore, choiceDetails);
+    }
+    function trySubmitHardFill() {
+        let fillDetails = [];
+        correctFill.forEach((correct, i) => {
+            let isCorrect = (userFill[i] === correct);
+            fillDetails.push(isCorrect);
+        });
+        let score = fillDetails.filter(c => c).length * 5;
+        let maxScore = correctFill.length * 5;
+        submitPart('Hard', 'fillBlanks', score, maxScore, fillDetails);
+    }
+    
+    document.getElementById('checkHardChoice').onclick = () => {
+        let wrong=[];
+        hardAnswers.forEach((v,i)=>{ if(v!==hq[i].correct) wrong.push(i+1); });
+        if(wrong.length===0 && !hardAnswers.includes(null)){
+            document.getElementById('hardChoiceResult').innerHTML="🎉 Perfect! 细节理解全对！🎉";
+            playRandomExcellentAmazing();
+        } else {
+            document.getElementById('hardChoiceResult').innerHTML=`🌼 Try again. 第 ${wrong.join(',')} 题答案有误，请修改。`;
+        }
+        trySubmitHardChoice();
+    };
+    document.getElementById('checkHardGap').onclick = () => {
+        let wrong=[];
+        userFill.forEach((v,i)=>{ if(v!==correctFill[i]) wrong.push(i+1); });
+        if(wrong.length===0 && !userFill.includes(null)){
+            document.getElementById('hardGapResult').innerHTML="🎉 Perfect! 选词填空全对！🎉";
+            playRandomExcellentAmazing();
+        } else {
+            document.getElementById('hardGapResult').innerHTML=`🌼 Try again. 第 ${wrong.join(',')} 题填空有误，请修改。`;
+        }
+        trySubmitHardFill();
+    };
+    buildSelfStars('hardSelfStars');
+}
+
+// ========= 迁移创新环节（完整保留） =========
+const STEP_X = 30;
+const STEP_Y = 16;
+const STEP_Y_MIDDLE = 8;
+const MAX_X_UNLIMITED = 5000;
+const START_LEFT = 20;
+const START_TOP = 50;
+
+function renderEasyStep() {
+    document.getElementById('previewImagesContainer').style.display = 'none';
+    document.getElementById('practiceImageContainer').style.display = 'none';
+    let container = document.getElementById('transferSubContent');
+    container.innerHTML = `<img src="images/adventure.png" class="adventure-bg-small" onerror="this.style.display='none'"><div class="task-hint">🎧 听录音，根据要求指引小男孩到达指定位置后点击bingo按钮</div><div class="task-hint">💡 Tips: 如果听录音遇到困难，点击下方【对话原文】键可以为你提供帮助哦</div><div class="audio-buttons"><button class="audio-btn" id="playAskBtn"><i class="fas fa-user"></i> Ask the way</button><button class="audio-btn" id="playShowBtn"><i class="fas fa-user-friends"></i> Show the way</button><button class="audio-btn full-btn" id="playFullBtn"><i class="fas fa-users"></i> 完整对话</button><button class="toggle-btn" id="toggleScriptBtn">📄 对话原文</button></div><div id="dialogScript" class="dialog-text">🗣️ A: Excuse me, where can I find the cinema?<br>🗣️ B: Please walk on. It is between the park and the supermarket on your right.</div><div class="map-container" style="position:relative; min-height:400px;"><img src="images/street.png" class="street-map" style="width:100%; max-width:900px; display:block; margin:0 auto;"><img src="images/Maomao.png" id="easyChar" class="character-img" style="position:absolute; left:${START_LEFT}px; top:${START_TOP}%; transform:translateY(-50%); width:55px; transition:left 0.1s ease, top 0.1s ease;"></div><div class="move-controls"><button class="move-btn" id="moveForward">🚶 walk on</button><button class="move-btn" id="moveBack">⬅️ back</button><button class="move-btn" id="moveUp">⬅️ left</button><button class="move-btn" id="moveDown">➡️ right</button><button class="move-btn" id="bingoBtn">🎯 BINGO</button></div><div id="bingoPanel" style="display:none; text-align:center; margin:15px 0;"><div class="big-buttons"><button id="wellDoneEasy" class="big-btn">🎉 Well done</button><button id="tryAgainEasy" class="big-btn warning-btn">🌼 Try again</button></div></div><div class="reset-corner"><button id="resetEasyBtn" class="move-btn">🔄 重置位置</button></div>`;
+    document.getElementById('playAskBtn')?.addEventListener('click',()=>playLocalAudio('dialog_easy_a.mp3'));
+    document.getElementById('playShowBtn')?.addEventListener('click',()=>playLocalAudio('dialog_easy_b.mp3'));
+    document.getElementById('playFullBtn')?.addEventListener('click',()=>playLocalAudio('dialog_easy_full.mp3'));
+    const scriptDiv = document.getElementById('dialogScript');
+    document.getElementById('toggleScriptBtn')?.addEventListener('click',()=>{ scriptDiv.style.display = scriptDiv.style.display==='none'?'block':'none'; });
+    scriptDiv.style.display = 'none';
+    let currentX = START_LEFT;
+    let currentY = START_TOP;
+    const charImg = document.getElementById('easyChar');
+    const maxX = MAX_X_UNLIMITED;
+    const minX = START_LEFT;
+    const maxY = 90;
+    const minY = 10;
+    const stepX = STEP_X;
+    const stepY = STEP_Y;
+    const moveForward = () => { currentX = Math.min(currentX + stepX, maxX); updateCharPos(); };
+    const moveBack = () => { currentX = Math.max(currentX - stepX, minX); updateCharPos(); };
+    const moveUp = () => { currentY = Math.max(currentY - stepY, minY); updateCharPos(); };
+    const moveDown = () => { currentY = Math.min(currentY + stepY, maxY); updateCharPos(); };
+    function updateCharPos() { if(charImg) { charImg.style.left = currentX + 'px'; charImg.style.top = currentY + '%'; } }
+    document.getElementById('moveForward')?.addEventListener('click', moveForward);
+    document.getElementById('moveBack')?.addEventListener('click', moveBack);
+    document.getElementById('moveUp')?.addEventListener('click', moveUp);
+    document.getElementById('moveDown')?.addEventListener('click', moveDown);
+    document.getElementById('bingoBtn')?.addEventListener('click',()=>{ document.getElementById('bingoPanel').style.display = 'block'; });
+    document.getElementById('resetEasyBtn')?.addEventListener('click',()=>{ currentX = START_LEFT; currentY = START_TOP; updateCharPos(); document.getElementById('bingoPanel').style.display = 'none'; });
+    document.getElementById('wellDoneEasy')?.addEventListener('click',()=>{ playLocalAudio('excellent.mp3'); playApplause(); const gifImg = document.createElement('img'); gifImg.src='images/well down.gif'; gifImg.style.position='fixed'; gifImg.style.bottom='20%'; gifImg.style.left='50%'; gifImg.style.transform='translateX(-50%)'; gifImg.style.zIndex='999'; document.body.appendChild(gifImg); setTimeout(()=>gifImg.remove(),3000); });
+    document.getElementById('tryAgainEasy')?.addEventListener('click',()=>alert('🌸 再试一次，你一定可以！'));
+    updateCharPos();
+}
+function renderMiddleStep() {
+    document.getElementById('previewImagesContainer').style.display = 'none';
+    document.getElementById('practiceImageContainer').style.display = 'none';
+    let container = document.getElementById('transferSubContent');
+    container.innerHTML = `<img src="images/adventure.png" class="adventure-bg-small" onerror="this.style.display='none'"><div class="task-hint">🚗 和同伴共同完成，一问一答，问路的同学要根据指路同学的指令移动画面中的小汽车。</div><div class="audio-buttons"><button id="askWayBtn" class="toggle-btn">🗣️ Ask the way 问路</button><button id="showWayBtn" class="toggle-btn">🗺️ Show the way 指路</button></div><div id="dialogDisplay" class="dialog-text" style="display:block; font-size:1rem;">💬 点击上方按钮查看对话</div><div class="map-container" style="position:relative; min-height:400px;"><img src="images/street.png" class="street-map" style="width:100%; max-width:900px; display:block; margin:0 auto;"><img src="images/car.png" id="middleCar" class="car-img" style="position:absolute; left:${START_LEFT}px; top:${START_TOP}%; transform:translateY(-50%); width:80px; transition:left 0.1s ease, top 0.1s ease;"></div><div class="move-controls"><button class="move-btn" id="carForward">🚗 drive on</button><button class="move-btn" id="carBack">⬅️ back</button><button class="move-btn" id="carLeft">⬅️ left</button><button class="move-btn" id="carRight">➡️ right</button><button class="move-btn" id="carBingo">🎯 BINGO</button></div><div id="bingoPanelMid" style="display:none; text-align:center;"><div class="big-buttons"><button id="wellDoneMid" class="big-btn">🎉 Well done</button><button id="tryAgainMid" class="big-btn warning-btn">🌼 Try again</button></div></div><div class="reset-corner"><button id="resetMidBtn" class="move-btn">🔄 重置位置</button></div>`;
+    document.getElementById('askWayBtn')?.addEventListener('click',()=>{ document.getElementById('dialogDisplay').innerHTML = '💬 Excuse me, how can I get to the library?'; });
+    document.getElementById('showWayBtn')?.addEventListener('click',()=>{ document.getElementById('dialogDisplay').innerHTML = '💬 Drive on first, and then turn right at the third corner. It\'s right beside the orange building.'; });
+    let currentX = START_LEFT;
+    let currentY = START_TOP;
+    const carDiv = document.getElementById('middleCar');
+    const maxX = MAX_X_UNLIMITED;
+    const minX = START_LEFT;
+    const maxY = 90;
+    const minY = 10;
+    const stepX = STEP_X;
+    const stepY = STEP_Y_MIDDLE;
+    const moveForward = () => { currentX = Math.min(currentX + stepX, maxX); updateCarPos(); };
+    const moveBack = () => { currentX = Math.max(currentX - stepX, minX); updateCarPos(); };
+    const moveLeft = () => { currentY = Math.max(currentY - stepY, minY); updateCarPos(); };
+    const moveRight = () => { currentY = Math.min(currentY + stepY, maxY); updateCarPos(); };
+    function updateCarPos() { if(carDiv) { carDiv.style.left = currentX + 'px'; carDiv.style.top = currentY + '%'; } }
+    document.getElementById('carForward')?.addEventListener('click', moveForward);
+    document.getElementById('carBack')?.addEventListener('click', moveBack);
+    document.getElementById('carLeft')?.addEventListener('click', moveLeft);
+    document.getElementById('carRight')?.addEventListener('click', moveRight);
+    document.getElementById('carBingo')?.addEventListener('click',()=>{ document.getElementById('bingoPanelMid').style.display='block'; });
+    document.getElementById('resetMidBtn')?.addEventListener('click',()=>{ currentX = START_LEFT; currentY = START_TOP; updateCarPos(); document.getElementById('bingoPanelMid').style.display='none'; });
+    document.getElementById('wellDoneMid')?.addEventListener('click',()=>{ playLocalAudio('amazing.mp3'); playApplause(); const gifImg=document.createElement('img'); gifImg.src='images/well down.gif'; gifImg.style.position='fixed'; gifImg.style.bottom='20%'; gifImg.style.left='50%'; gifImg.style.transform='translateX(-50%)'; gifImg.style.zIndex='999'; document.body.appendChild(gifImg); setTimeout(()=>gifImg.remove(),3000); });
+    document.getElementById('tryAgainMid')?.addEventListener('click',()=>alert('🌻 加油，再试试看！'));
+    updateCarPos();
+}
+function renderFinalStep() {
+    document.getElementById('previewImagesContainer').style.display = 'none';
+    document.getElementById('practiceImageContainer').style.display = 'none';
+    let container = document.getElementById('transferSubContent');
+    container.innerHTML = `<img src="images/adventure.png" class="adventure-bg-small" onerror="this.style.display='none'"><div class="task-hint">💬 根据关键提示词、句和同伴自编对话，然后移动小男孩完成任务。</div><div class="word-bank"><div class="word-col"><h4>📢 Ask the way</h4><p>Excuse me;<br>Can you tell me the way to...?<br>Where is the...?<br>How can I get to..?</p></div><div class="word-col"><h4>🗺️ Show the way</h4><p>walk on/ go straight...<br>turn... at the ... corner<br>beside; between; behind;<br>next to...</p></div></div><div class="map-container" style="position:relative; min-height:400px;"><img src="images/street.png" class="street-map" style="width:100%; max-width:900px;"><img src="images/Maomao.png" id="finalChar" class="character-img" style="position:absolute; left:${START_LEFT}px; top:${START_TOP}%; transform:translateY(-50%); width:55px; transition:left 0.1s ease, top 0.1s ease;"></div><div class="move-controls"><button class="move-btn" id="finalForward">🚶 walk on</button><button class="move-btn" id="finalBack">⬅️ back</button><button class="move-btn" id="finalLeft">⬅️ left</button><button class="move-btn" id="finalRight">➡️ right</button><button class="move-btn" id="finalBingo">🎯 BINGO</button></div><div id="bingoPanelFinal" style="display:none; text-align:center;"><div class="big-buttons"><button id="wellDoneFinal" class="big-btn">🎉 Well done</button><button id="tryAgainFinal" class="big-btn warning-btn">🌼 Try again</button></div></div><div class="reset-corner"><button id="resetFinalBtn" class="move-btn">🔄 重置位置</button></div>`;
+    let currentX = START_LEFT;
+    let currentY = START_TOP;
+    const charDiv = document.getElementById('finalChar');
+    const maxX = MAX_X_UNLIMITED;
+    const minX = START_LEFT;
+    const maxY = 90;
+    const minY = 10;
+    const stepX = STEP_X;
+    const stepY = STEP_Y;
+    const moveForward = () => { currentX = Math.min(currentX + stepX, maxX); updatePos(); };
+    const moveBack = () => { currentX = Math.max(currentX - stepX, minX); updatePos(); };
+    const moveLeft = () => { currentY = Math.max(currentY - stepY, minY); updatePos(); };
+    const moveRight = () => { currentY = Math.min(currentY + stepY, maxY); updatePos(); };
+    function updatePos() { if(charDiv) { charDiv.style.left = currentX + 'px'; charDiv.style.top = currentY + '%'; } }
+    document.getElementById('finalForward')?.addEventListener('click', moveForward);
+    document.getElementById('finalBack')?.addEventListener('click', moveBack);
+    document.getElementById('finalLeft')?.addEventListener('click', moveLeft);
+    document.getElementById('finalRight')?.addEventListener('click', moveRight);
+    document.getElementById('finalBingo')?.addEventListener('click',()=>{ document.getElementById('bingoPanelFinal').style.display='block'; });
+    document.getElementById('resetFinalBtn')?.addEventListener('click',()=>{ currentX = START_LEFT; currentY = START_TOP; updatePos(); document.getElementById('bingoPanelFinal').style.display='none'; });
+    document.getElementById('wellDoneFinal')?.addEventListener('click',()=>{ playLocalAudio('applause.mp3'); playApplause(); const gifImg=document.createElement('img'); gifImg.src='images/well down.gif'; gifImg.style.position='fixed'; gifImg.style.bottom='20%'; gifImg.style.left='50%'; gifImg.style.transform='translateX(-50%)'; gifImg.style.zIndex='999'; document.body.appendChild(gifImg); setTimeout(()=>gifImg.remove(),3000); });
+    document.getElementById('tryAgainFinal')?.addEventListener('click',()=>alert('💪 再试一次，你可以创编更棒的对话！'));
+    updatePos();
+}
+
+// ========= 导航控制 =========
+document.querySelector('.nav-btn[data-stage="learn"]').addEventListener('click', () => { 
+    document.getElementById('previewImagesContainer').style.display = 'flex';
+    document.getElementById('previewImagesContainer').className = 'preview-images-double';
+    document.getElementById('previewImagesContainer').innerHTML = `<img src="images/text1.png" class="preview-img" alt="课文图片1" onerror="this.src='data:image/svg+xml,%3Csvg...%3E'"><img src="images/text2.png" class="preview-img" alt="课文图片2" onerror="this.src='data:image/svg+xml,%3Csvg...%3E'>`;
+    document.getElementById('practiceImageContainer').style.display = 'none';
+    document.getElementById('learnBlocksWrapper').style.display = 'block'; 
+    document.getElementById('learnSubContent').innerHTML = '✨ 请点击相应板块开启我们的学习之旅吧！<i class="fas fa-fist-raised encourage-icon"></i> ✨'; 
+    document.getElementById('practiceSubContent').innerHTML = '<div class="practice-steps"><p>📋 <strong>挑战步骤如下：</strong></p><p>1️⃣ 按要求完成各项练习</p><p>2️⃣ 点击 "Check the answers" 核对答案</p><p>3️⃣ 如果有错误，按提示题号修改后再次点击 "Check the answers" 核对答案</p></div>✨ 请点击上方难度块开始挑战 ✨';
+});
+document.querySelector('.nav-btn[data-stage="practice"]').addEventListener('click', () => {
+    document.getElementById('previewImagesContainer').style.display = 'none';
+    const practiceImageContainer = document.getElementById('practiceImageContainer');
+    practiceImageContainer.style.display = 'flex';
+    practiceImageContainer.innerHTML = `<img src="images/text2.png" class="preview-img-single" alt="课文图片2" onerror="this.src='data:image/svg+xml,%3Csvg...%3E'">`;
+    document.getElementById('practiceSubContent').innerHTML = '<div class="practice-steps"><p>📋 <strong>挑战步骤如下：</strong></p><p>1️⃣ 按要求完成各项练习</p><p>2️⃣ 点击 "Check the answers" 核对答案</p><p>3️⃣ 如果有错误，按提示题号修改后再次点击 "Check the answers" 核对答案</p></div>✨ 请点击上方难度块开始挑战 ✨';
+});
+document.querySelector('.nav-btn[data-stage="transfer"]').addEventListener('click', () => {
+    document.getElementById('previewImagesContainer').style.display = 'none';
+    document.getElementById('practiceImageContainer').style.display = 'none';
+});
+document.querySelectorAll('.nav-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ let stage=btn.dataset.stage; document.querySelectorAll('.stage-pane').forEach(p=>p.classList.remove('active-pane')); if(stage==='learn') document.getElementById('learn-stage').classList.add('active-pane'); if(stage==='practice') document.getElementById('practice-stage').classList.add('active-pane'); if(stage==='transfer') document.getElementById('transfer-stage').classList.add('active-pane'); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }); });
+document.querySelectorAll('[data-learn]').forEach(btn=>{ btn.addEventListener('click',()=>{ if(btn.dataset.learn==='part1') renderPart1(); else renderPart2(); }); });
+document.querySelectorAll('[data-practice]').forEach(btn=>{ btn.addEventListener('click',()=>{ let level=btn.dataset.practice; if(level==='easy') renderEasy(); else if(level==='normal') renderNormal(); else renderHard(); }); });
+document.querySelectorAll('[data-transfer-step]').forEach(btn=>{ btn.addEventListener('click',()=>{ let stepType=btn.dataset.transferStep; if(stepType==='easyStep') renderEasyStep(); else if(stepType==='middleStep') renderMiddleStep(); else renderFinalStep(); }); });
+document.getElementById('learnBlocksWrapper').style.display = 'none';
+document.getElementById('practiceImageContainer').style.display = 'none';
+window.playApplause = playApplause;
+window.buildSelfStars = buildSelfStars;
+</script>
+</body>
+</html>
