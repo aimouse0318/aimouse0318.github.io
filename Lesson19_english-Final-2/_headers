@@ -1,0 +1,11 @@
+# 针对网站根目录及所有子目录的 HTML 文件
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+# 针对网站根目录下的所有文件（包括 JS, CSS, 图片等）
+/*
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0

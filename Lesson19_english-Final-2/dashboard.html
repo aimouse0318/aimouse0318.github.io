@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课堂练习 · 独立正确率大屏（最终版）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <style>
+        body { background: #f3f4f6; font-family: system-ui; padding: 20px; max-width: 1300px; margin: 0 auto; }
+        .card { background: white; border-radius: 1.5rem; padding: 1.25rem; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .stat-number { font-size: 2rem; font-weight: 800; }
+        .stat-label { font-size: 0.75rem; text-transform: uppercase; color: #6b7280; }
+        .module-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; }
+        .badge-Easy { background: #dcfce7; color: #15803d; }
+        .badge-Normal { background: #e0f2fe; color: #0369a1; }
+        .badge-Hard { background: #fff3e3; color: #b45309; }
+        .subpart { background: #f9fafb; border-radius: 1rem; padding: 1rem; margin-top: 1rem; }
+        .question-row { display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 0.75rem; padding: 0.5rem 1rem; margin-bottom: 0.5rem; }
+        .progress-bar { width: 140px; height: 6px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #10b981; border-radius: 9999px; width: 0%; }
+    </style>
+</head>
+<body>
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h1 class="text-2xl font-bold">📊 课堂练习 · 独立正确率大屏</h1>
+            <p class="text-gray-500 text-sm">每3秒刷新 | 每个大题独立统计</p>
+        </div>
+        <button id="manualRefresh" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium">🔄 立即刷新</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" id="kpiArea"></div>
+
+    <div class="card">
+        <div class="font-semibold mb-2">📈 各模块整体正确率</div>
+        <div id="overallChart" style="height: 320px;"></div>
+    </div>
+
+    <div id="detailsContainer" class="space-y-4"></div>
+    <div id="updateTime" class="text-center text-xs text-gray-400 mt-6"></div>
+
+    <script>
+        const API_URL = 'https://quickform.cn/api/oevx2zmmae/all';
+        let chart = null;
+
+        const PART_DEF = {
+            Easy: { choice: { name: "单项选择", total: 6 }, trueFalse: { name: "判断对错", total: 4 } },
+            Normal: { matching: { name: "连线匹配", total: 8 }, choice: { name: "单项选择", total: 4 } },
+            Hard: { choice: { name: "单项选择（细节理解）", total: 4 }, fillBlanks: { name: "选词填空", total: 5 } }
+        };
+
+        function aggregateByPart(submissions) {
+            const groups = {};
+            for (const sub of submissions) {
+                const module = sub.module;
+                const part = sub.part;
+                if (!module || !part) continue;
+                const def = PART_DEF[module]?.[part];
+                if (!def) continue;
+                const key = `${module}_${part}`;
+                if (!groups[key]) {
+                    groups[key] = {
+                        module, part, title: def.name, totalQ: def.total,
+                        count: 0, correct: new Array(def.total).fill(0)
+                    };
+                }
+                const group = groups[key];
+                group.count++;
+                const answers = sub.userAnswers?.[part];
+                if (Array.isArray(answers)) {
+                    for (let i = 0; i < Math.min(answers.length, group.totalQ); i++) {
+                        if (answers[i] === true) group.correct[i]++;
+                    }
+                }
+            }
+            return groups;
+        }
+
+        function renderKPI(submissions, groups) {
+            const totalSubmissions = submissions.length;
+            const totalParts = Object.keys(groups).length;
+            const modulesSet = new Set(submissions.map(s => s.module).filter(Boolean));
+            let totalScore = 0, totalMax = 0;
+            submissions.forEach(s => { totalScore += s.score || 0; totalMax += s.maxScore || 0; });
+            const overall = totalMax ? (totalScore / totalMax * 100).toFixed(1) : 0;
+            document.getElementById('kpiArea').innerHTML = `
+                <div class="card"><div class="stat-label">总提交次数</div><div class="stat-number">${totalSubmissions}</div></div>
+                <div class="card"><div class="stat-label">总体正确率</div><div class="stat-number">${overall}%</div></div>
+                <div class="card"><div class="stat-label">涉及模块数</div><div class="stat-number">${modulesSet.size}</div></div>
+                <div class="card"><div class="stat-label">独立大题数</div><div class="stat-number">${totalParts}</div></div>
+            `;
+        }
+
+        function renderDetails(groups) {
+            const order = ['Easy', 'Normal', 'Hard'];
+            let html = '';
+            for (const module of order) {
+                let moduleHtml = `<div class="card"><div class="flex items-center gap-2 mb-3"><span class="module-badge badge-${module}">${module}</span><span class="text-sm text-gray-500">各独立大题</span></div>`;
+                let hasData = false;
+                for (const part in PART_DEF[module]) {
+                    const key = `${module}_${part}`;
+                    const group = groups[key];
+                    if (!group || group.count === 0) continue;
+                    hasData = true;
+                    const totalQ = group.totalQ;
+                    const correctCounts = group.correct;
+                    const submitCount = group.count;
+                    let partAvg = 0;
+                    for (let i = 0; i < totalQ; i++) partAvg += (correctCounts[i] / submitCount) * 100;
+                    partAvg = partAvg / totalQ;
+                    moduleHtml += `<div class="subpart">
+                        <div class="font-semibold">📌 ${group.title} &nbsp; <span class="text-sm font-normal text-gray-500">整体正确率 ${partAvg.toFixed(1)}% (共 ${submitCount} 人提交)</span></div>
+                        <div class="mt-2 space-y-2">`;
+                    for (let i = 0; i < totalQ; i++) {
+                        const rate = (correctCounts[i] / submitCount) * 100;
+                        moduleHtml += `<div class="question-row">
+                            <span class="text-sm font-medium">小题 ${i+1}</span>
+                            <div class="flex items-center gap-3">
+                                <div class="progress-bar"><div class="progress-fill" style="width: ${rate}%;"></div></div>
+                                <span class="text-sm ${rate >= 60 ? 'text-green-600' : 'text-red-500'} font-medium">${rate.toFixed(1)}% (${correctCounts[i]}/${submitCount})</span>
+                            </div>
+                        </div>`;
+                    }
+                    moduleHtml += `</div></div>`;
+                }
+                if (!hasData) moduleHtml += `<div class="text-gray-400 text-sm py-3">暂无提交数据</div>`;
+                moduleHtml += `</div>`;
+                html += moduleHtml;
+            }
+            document.getElementById('detailsContainer').innerHTML = html;
+        }
+
+        async function refreshDashboard() {
+            try {
+                const resp = await fetch(API_URL);
+                const json = await resp.json();
+                const submissions = json.submissions || [];
+                const groups = aggregateByPart(submissions);
+                renderKPI(submissions, groups);
+                renderDetails(groups);
+                // 简单柱状图（模块整体）
+                const moduleScores = {}, moduleMax = {};
+                submissions.forEach(s => {
+                    const m = s.module;
+                    if (!m) return;
+                    moduleScores[m] = (moduleScores[m] || 0) + (s.score || 0);
+                    moduleMax[m] = (moduleMax[m] || 0) + (s.maxScore || 0);
+                });
+                const mods = Object.keys(moduleScores);
+                const accs = mods.map(m => moduleMax[m] ? (moduleScores[m] / moduleMax[m] * 100).toFixed(1) : 0);
+                if (!chart) {
+                    chart = echarts.init(document.getElementById('overallChart'));
+                    chart.setOption({
+                        tooltip: { trigger: 'axis' },
+                        xAxis: { type: 'category', data: mods },
+                        yAxis: { name: '正确率 (%)', max: 100 },
+                        series: [{ type: 'bar', data: accs, itemStyle: { borderRadius: [6,6,0,0], color: '#4f46e5' }, label: { show: true, position: 'top', formatter: '{c}%' } }]
+                    });
+                } else {
+                    chart.setOption({ xAxis: { data: mods }, series: [{ data: accs }] });
+                }
+                document.getElementById('updateTime').innerText = `最后更新: ${new Date().toLocaleString()}`;
+            } catch (err) {
+                console.error(err);
+                document.getElementById('detailsContainer').innerHTML = `<div class="card text-red-500">加载失败: ${err.message}</div>`;
+            }
+        }
+
+        refreshDashboard();
+        setInterval(refreshDashboard, 3000);
+        document.getElementById('manualRefresh').addEventListener('click', refreshDashboard);
+    </script>
+</body>
+</html>
