@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>课堂练习 · 小题正确率大屏</title>
+    <title>课堂练习 · 小题正确率大屏（增强版）</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <style>
@@ -19,13 +19,14 @@
         .question-row { display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 0.75rem; padding: 0.5rem 1rem; margin-bottom: 0.5rem; }
         .progress-bar { width: 140px; height: 6px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
         .progress-fill { height: 100%; background: #10b981; border-radius: 9999px; width: 0%; }
+        .debug-info { font-family: monospace; font-size: 0.7rem; background: #fef9c3; padding: 8px; border-radius: 8px; margin-top: 10px; word-break: break-all; }
     </style>
 </head>
 <body>
     <div class="flex justify-between items-center mb-4">
         <div>
             <h1 class="text-2xl font-bold">📊 课堂练习 · 小题正确率大屏</h1>
-            <p class="text-gray-500 text-sm">每3秒自动刷新 | 正确率基于提交次数</p>
+            <p class="text-gray-500 text-sm">每3秒自动刷新 | 正确率基于提交次数 | 显示每道小题</p>
         </div>
         <button id="manualRefresh" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium">🔄 立即刷新</button>
     </div>
@@ -39,6 +40,7 @@
 
     <div id="detailsContainer" class="space-y-4"></div>
     <div id="updateTime" class="text-center text-xs text-gray-400 mt-6"></div>
+    <div id="debugInfo" class="debug-info hidden"></div>  <!-- 调试信息，默认隐藏，有问题可显示 -->
 
     <script>
         const API_URL = 'https://quickform.cn/api/cu6ehjoiel/all';
@@ -51,9 +53,9 @@
             Hard: { choice: { name: "单项选择（细节理解）", total: 4 }, fillBlanks: { name: "选词填空", total: 5 } }
         };
 
-        // 聚合统计：每个部分独立统计，不依赖 device_id
+        // 聚合统计：每个部分独立统计
         function aggregateByPart(submissions) {
-            const groups = {}; // key: `${module}_${part}`
+            const groups = {};
             for (const sub of submissions) {
                 const module = sub.module;
                 const part = sub.part;
@@ -77,6 +79,8 @@
                     for (let i = 0; i < Math.min(answers.length, group.totalQ); i++) {
                         if (answers[i] === true) group.correctCounts[i]++;
                     }
+                } else {
+                    console.warn(`答案不是数组: ${module}/${part}`, answers);
                 }
             }
             return groups;
@@ -139,7 +143,21 @@
             try {
                 const resp = await fetch(API_URL);
                 const json = await resp.json();
-                const submissions = json.submissions || [];
+                // 兼容多种可能的返回结构
+                let submissions = [];
+                if (json.submissions && Array.isArray(json.submissions)) {
+                    submissions = json.submissions;
+                } else if (Array.isArray(json)) {
+                    submissions = json;
+                } else if (json.data && Array.isArray(json.data)) {
+                    submissions = json.data;
+                } else {
+                    // 显示错误信息
+                    document.getElementById('detailsContainer').innerHTML = `<div class="card text-red-500">无法解析数据，请检查网络或API地址。原始返回：<pre>${JSON.stringify(json, null, 2)}</pre></div>`;
+                    document.getElementById('debugInfo').classList.remove('hidden');
+                    document.getElementById('debugInfo').innerHTML = `原始返回数据：<br>${JSON.stringify(json, null, 2)}`;
+                    return;
+                }
                 const groups = aggregateByPart(submissions);
                 renderKPI(submissions);
                 renderDetails(groups);
@@ -169,6 +187,8 @@
             } catch (err) {
                 console.error(err);
                 document.getElementById('detailsContainer').innerHTML = `<div class="card text-red-500">加载失败: ${err.message}</div>`;
+                document.getElementById('debugInfo').classList.remove('hidden');
+                document.getElementById('debugInfo').innerHTML = `错误详情：${err.message}`;
             }
         }
 
