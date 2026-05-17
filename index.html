@@ -128,7 +128,7 @@
 </div>
 
 <script>
-// ==================== 全局函数（完整保留） ====================
+// ==================== 全局函数 ====================
 let globalStream = null;
 let micPermissionReady = false;
 async function initMicrophone() {
@@ -187,7 +187,7 @@ async function startRecording(sentenceId) {
 function stopRecording(sentenceId) { const recorder = recorderInstances[sentenceId]; const startBtn = document.getElementById(`startRec_${sentenceId}`); if(recorder && recorder.state === 'recording') { recorder.stop(); if(startBtn) startBtn.classList.remove('recording'); delete recorderInstances[sentenceId]; } }
 function playMyRecording(sentenceId) { const blob = blobInstances[sentenceId]; const statusSpan = document.getElementById(`status_${sentenceId}`); if(blob) { const url = URL.createObjectURL(blob); const audio = new Audio(url); audio.play(); audio.onended = () => URL.revokeObjectURL(url); } else { if(statusSpan) statusSpan.innerHTML = '⚠️ 请先录音，再点击回放'; } }
 
-// ========= 学习理解 Part1 & Part2（完整保留） =========
+// ========= 学习理解 Part1 & Part2 =========
 async function renderPart1(){ 
     const container = document.getElementById('previewImagesContainer');
     container.className = 'preview-single';
@@ -221,7 +221,7 @@ async function renderPart2(){
     buildSelfStars('part2SelfStars');
 }
 
-// ==================== 新的提交函数（直接提交，无队列，无重试） ====================
+// ==================== 直接提交函数（无队列，无重试） ====================
 const SUBMIT_API = 'https://quickform.cn/api/9ykj2owatn';
 
 async function submitPart(moduleName, partName, score, maxScore, answersArray) {
@@ -252,7 +252,6 @@ async function submitPart(moduleName, partName, score, maxScore, answersArray) {
     }
 }
 
-// 添加全局状态栏
 function addStatusBar() {
     const container = document.querySelector('.master-container');
     if (container && !document.getElementById('submitStatus')) {
@@ -266,8 +265,7 @@ function addStatusBar() {
 
 document.addEventListener('DOMContentLoaded', () => {
     addStatusBar();
-    // 清除历史队列（防止旧队列残留）
-    localStorage.removeItem('pendingSubmissions');
+    localStorage.removeItem('pendingSubmissions'); // 清除旧队列
 });
 
 // ========= Easy 模块 =========
@@ -350,7 +348,7 @@ function renderEasy() {
     buildSelfStars('easySelfStars');
 }
 
-// ========= Normal 模块 =========
+// ========= Normal 模块（连线功能完整保留） =========
 let lineCanvas = null;
 let currentMatchPairs = {};
 let leftItemsGlobal = [], rightItemsFixed = [], correctMapGlobal = {};
@@ -619,7 +617,7 @@ function renderHard() {
     buildSelfStars('hardSelfStars');
 }
 
-// ========= 迁移创新环节（完整保留） =========
+// ========= 迁移创新环节 =========
 const STEP_X = 30;
 const STEP_Y = 16;
 const STEP_Y_MIDDLE = 8;
