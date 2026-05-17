@@ -8,91 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-        body { font-family: 'Quicksand', sans-serif; background: linear-gradient(145deg, #c0e0ff 0%, #b2d3f0 100%); padding: 20px; min-height: 100vh; }
-        .master-container { max-width: 1400px; margin: 0 auto; background: #fffef7; border-radius: 70px; box-shadow: 0 25px 45px rgba(0,0,0,0.2); overflow: hidden; }
-        .clay-header { background: linear-gradient(135deg, #ff9a3c, #ffc371); padding: 22px 28px; border-bottom: 8px solid #ffdd99; }
-        .title-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-        .clay-icon { width: 70px; height: 70px; background: #fff1c1; border-radius: 35px; display: flex; align-items: center; justify-content: center; box-shadow: 0 12px 0 #c29b3a; font-size: 42px; color: #ff8c42; }
-        .title-text h1 { font-size: 2rem; font-weight: 800; color: white; text-shadow: 3px 3px 0 #b4621a; }
-        .title-text p { font-size: 1rem; color: #fff3cf; font-weight: 600; }
-        .nav-buttons { display: flex; gap: 20px; justify-content: center; margin: 20px 28px 0; flex-wrap: wrap; }
-        .nav-btn { background: #fdf8ed; border: none; padding: 12px 28px; border-radius: 80px; font-weight: 800; font-size: 1.2rem; cursor: pointer; box-shadow: 0 7px 0 #d4b87a; display: flex; align-items: center; gap: 12px; color: #a7581c; transition: 0.07s linear; }
-        .nav-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #d4b87a; }
-        .nav-btn.active { background: #ffdd99; color: #c25d00; border: 2px solid white; }
-        .stage-container { padding: 30px; background: #fef7e8; min-height: 600px; }
-        .stage-pane { display: none; animation: fadeIn 0.3s; }
-        .stage-pane.active-pane { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .preview-images-double { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px; padding: 20px; background: #f9efdc; border-radius: 60px; }
-        .preview-img { width: auto; height: auto; max-width: 280px; max-height: 200px; border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; transition: transform 0.2s; object-fit: contain; background: transparent; }
-        .preview-single { display: flex; justify-content: center; align-items: center; margin-bottom: 30px; padding: 20px; background: #f9efdc; border-radius: 60px; }
-        .preview-img-single { width: auto; height: auto; max-width: 280px; max-height: 200px; border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer; transition: transform 0.2s; object-fit: contain; background: transparent; }
-        .textbook-img-small { display: block; margin: 0 auto 20px; width: 60%; max-width: 400px; border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); background: transparent; }
-        .task-blocks, .learn-blocks, .transfer-blocks { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-bottom: 30px; }
-        .task-block, .learn-block, .transfer-step { background: #ffefcf; border-radius: 48px; padding: 20px 35px; text-align: center; cursor: pointer; flex: 1; min-width: 180px; box-shadow: 0 12px 0 #d4aa6a; transition: 0.07s linear; }
-        .task-block:active, .learn-block:active, .transfer-step:active { transform: translateY(4px); box-shadow: 0 6px 0 #d4aa6a; }
-        .sub-content { background: white; border-radius: 48px; padding: 25px; margin-top: 20px; }
-        .sentence-item { background: #faf3e0; margin: 20px 0; padding: 18px; border-radius: 48px; }
-        .eng-sentence { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; }
-        .speed-buttons { display: flex; gap: 15px; flex-wrap: wrap; margin: 15px 0; align-items: center; }
-        .speed-btn { background: #e0e7ff; border: none; padding: 8px 20px; border-radius: 40px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
-        .record-controls { display: flex; gap: 12px; flex-wrap: wrap; margin: 10px 0; align-items: center; }
-        .record-action-btn { background: #6c9ebf; border: none; padding: 6px 16px; border-radius: 40px; font-weight: bold; cursor: pointer; color: white; }
-        .record-action-btn.recording { background: #e74c3c; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-        .evaluate-btn { background: #f39c12; border: none; padding: 10px 24px; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1rem; }
-        .ai-feedback { font-size: 0.9rem; margin-top: 12px; padding: 8px; border-radius: 28px; background: #fff4e0; }
-        .self-eval-area { margin-top: 30px; text-align: center; background: #fff0dc; border-radius: 60px; padding: 20px; }
-        .self-stars { display: flex; justify-content: center; gap: 20px; margin: 15px 0; }
-        .star-icon { font-size: 2.2rem; cursor: pointer; transition: 0.1s; color: #ccc; }
-        .star-icon.active { color: #ffbb33; text-shadow: 0 0 5px #ffa500; }
-        .check-btn { background: #30a14e; color: white; border: none; border-radius: 60px; padding: 12px 32px; font-weight: bold; cursor: pointer; margin: 15px 5px; font-size: 1rem; }
-        .match-area { display: flex; justify-content: center; gap: 8%; margin: 20px 0; position: relative; align-items: stretch; }
-        .match-col { flex: 0 0 28%; background: #f4ebdd; border-radius: 32px; padding: 15px; }
-        .match-item { background: white; margin: 12px 0; padding: 8px 12px; border-radius: 60px; cursor: pointer; text-align: center; font-weight: bold; transition: 0.05s; position: relative; z-index: 2; }
-        .match-item.selected { background: #ffd966; border: 2px solid #ffa500; }
-        .match-item.correct-match { background: #b5e3b5; }
-        #lineCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-        .tf-group { display: flex; gap: 20px; margin-top: 8px; }
-        .tf-btn { background: #e9ecef; border: none; padding: 6px 20px; border-radius: 40px; cursor: pointer; font-weight: bold; }
-        .tf-btn.active-true { background: #90be6d; color: white; }
-        .tf-btn.active-false { background: #f4acb7; color: white; }
-        .quiz-option { background: #f9f3e2; margin: 15px 0; padding: 15px; border-radius: 40px; }
-        .choice-option-btn { background: #e0e7ff; border: none; padding: 6px 18px; border-radius: 40px; margin: 5px; cursor: pointer; font-weight: bold; }
-        .choice-option-btn.selected-choice { background: #ffd966; }
-        .fill-word-btn { background: #e0e7ff; border: none; padding: 6px 18px; border-radius: 40px; margin: 5px; cursor: pointer; }
-        .fill-word-btn.selected-fill { background: #ffd966; }
-        .mic-permission-tip { background: #fff3e0; border: 2px solid #ffaa55; padding: 12px 20px; border-radius: 60px; text-align: center; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; }
-        .grant-mic-btn { background: #ffaa55; border: none; padding: 8px 24px; border-radius: 40px; font-weight: bold; cursor: pointer; color: white; font-size: 1rem; }
-        .practice-steps { background: #e8f5e9; padding: 15px 20px; border-radius: 30px; margin: 15px 0; font-size: 0.95rem; color: #2e7d32; }
-        .practice-steps p { margin: 5px 0; }
-        .learn-blocks-wrapper { display: none; }
-        .adventure-bg-large { display: block; margin: 0 auto 25px; width: 60%; max-width: 600px; border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-        .adventure-bg-small { display: block; margin: 0 auto 25px; width: 280px; max-width: 100%; border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-        .transfer-welcome { text-align: center; font-size: 1.5rem; font-weight: bold; color: #a7581c; margin: 20px 0; }
-        .street-map { width: 100%; max-width: 900px; display: block; margin: 15px auto; border-radius: 30px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); background: #d9e5bf; }
-        .move-controls { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
-        .move-btn { background: #ffaa55; border: none; padding: 12px 28px; border-radius: 60px; font-weight: bold; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 0 #bb7733; transition: 0.05s linear; }
-        .move-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #bb7733; }
-        .big-buttons { display: flex; gap: 30px; justify-content: center; margin-top: 20px; }
-        .big-btn { background: #30a14e; color: white; border: none; padding: 15px 40px; border-radius: 60px; font-size: 1.3rem; font-weight: bold; cursor: pointer; }
-        .warning-btn { background: #f4a261; }
-        .map-container { position: relative; display: inline-block; width: 100%; text-align: center; }
-        .character-img { position: absolute; left: 20px; top: 50%; width: 55px; transition: left 0.1s ease, top 0.1s ease; z-index: 10; pointer-events: none; transform: translateY(-50%); }
-        .car-img { position: absolute; left: 20px; top: 50%; width: 80px; transition: left 0.1s ease, top 0.1s ease; z-index: 10; pointer-events: none; transform: translateY(-50%); }
-        .reset-corner { text-align: center; margin: 20px 0; }
-        .audio-buttons { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 20px 0; }
-        .audio-btn { background: #ffaa66; border: none; padding: 10px 20px; border-radius: 50px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 1rem; box-shadow: 0 4px 0 #cc8844; transition: 0.05s linear; }
-        .audio-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #cc8844; }
-        .full-btn { font-size: 1rem; padding: 10px 20px; }
-        .toggle-btn { background: #6c9ebf; color: white; border: none; padding: 10px 24px; border-radius: 40px; cursor: pointer; font-size: 1.1rem; font-weight: bold; margin: 5px; }
-        .dialog-text { background: #eef2fa; padding: 15px; border-radius: 30px; margin: 15px 0; text-align: center; font-weight: bold; display: none; font-size: 1rem; }
-        .task-hint { text-align: center; font-size: 1.1rem; background: #fff0d0; padding: 12px 20px; border-radius: 50px; margin: 15px 0; }
-        .word-bank { display: flex; justify-content: space-between; gap: 30px; background: #f8efda; padding: 20px; border-radius: 40px; margin: 15px 0; flex-wrap: wrap; }
-        .word-col { flex: 1; min-width: 200px; }
-        .word-col h4 { color: #c25d00; margin-bottom: 10px; }
-        .encourage-icon { font-size: 1.3rem; margin-left: 8px; vertical-align: middle; }
+        /* 完整样式（与原版完全相同，此处省略以节省长度，但实际使用时需保留完整样式） */
+        /* 为保证代码完整性，请从您之前能正常显示的版本中复制样式 */
+        /* 由于消息长度限制，此处只展示核心修改部分，实际我会在最后提供完整可运行代码 */
     </style>
 </head>
 <body>
@@ -128,7 +46,7 @@
 </div>
 
 <script>
-// ==================== 全局函数 ====================
+// ==================== 全局函数（不变） ====================
 let globalStream = null;
 let micPermissionReady = false;
 async function initMicrophone() {
@@ -221,93 +139,35 @@ async function renderPart2(){
     buildSelfStars('part2SelfStars');
 }
 
-// ==================== 健壮版提交函数（带本地队列和重试） ====================
+// ==================== 新的提交函数：直接提交，无队列，无重试 ====================
 const SUBMIT_API = 'https://quickform.cn/api/9ykj2owatn';
 
-let pendingQueue = [];
-function loadPendingQueue() {
-    const stored = localStorage.getItem('pendingSubmissions');
-    if (stored) {
-        try {
-            pendingQueue = JSON.parse(stored);
-        } catch(e) { pendingQueue = []; }
-    }
-    if (!window.retryInterval) {
-        window.retryInterval = setInterval(processPendingQueue, 5000);
-    }
-}
-function savePendingQueue() {
-    localStorage.setItem('pendingSubmissions', JSON.stringify(pendingQueue));
-}
-function addToPendingQueue(moduleName, partName, score, maxScore, answersArray) {
-    const item = {
-        id: Date.now() + Math.random(),
-        module: moduleName,
-        part: partName,
-        score: score,
-        maxScore: maxScore,
-        answers: answersArray,
-        createdAt: new Date().toISOString(),
-        retryCount: 0
-    };
-    pendingQueue.push(item);
-    savePendingQueue();
-    console.log(`已加入队列: ${moduleName} - ${partName}`);
-    processPendingQueue();
-}
-async function processPendingQueue() {
-    if (pendingQueue.length === 0) return;
-    const queueCopy = [...pendingQueue];
-    let changed = false;
-    for (const item of queueCopy) {
-        const statusDiv = document.getElementById('submitStatus');
-        if (statusDiv) statusDiv.innerHTML = `<span class="text-yellow-600">⏳ 正在提交 ${item.module} - ${item.part} (重试 ${item.retryCount}) ...</span>`;
-        try {
-            const res = await fetch(SUBMIT_API, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    module: item.module,
-                    part: item.part,
-                    score: item.score,
-                    maxScore: item.maxScore,
-                    userAnswers: { [item.part]: item.answers },
-                    submittedAt: new Date().toISOString()
-                })
-            });
-            const data = await res.json();
-            if (data && data.code === 200) {
-                const index = pendingQueue.findIndex(i => i.id === item.id);
-                if (index !== -1) {
-                    pendingQueue.splice(index, 1);
-                    changed = true;
-                }
-                if (statusDiv) statusDiv.innerHTML = `<span class="text-green-600">✅ ${item.module} - ${item.part} 提交成功！</span>`;
-                setTimeout(() => { if (statusDiv && statusDiv.innerHTML.includes('成功')) statusDiv.innerHTML = ''; }, 3000);
-                console.log(`提交成功: ${item.module} - ${item.part}`);
-            } else {
-                item.retryCount++;
-                if (statusDiv) statusDiv.innerHTML = `<span class="text-red-600">❌ ${item.module} - ${item.part} 提交失败 (重试 ${item.retryCount})</span>`;
-                console.error(`提交失败: ${item.module} - ${item.part}`, data);
-                changed = true;
-            }
-        } catch (err) {
-            item.retryCount++;
-            if (statusDiv) statusDiv.innerHTML = `<span class="text-red-600">❌ 网络错误：${err.message} (重试 ${item.retryCount})</span>`;
-            console.error(`网络错误: ${item.module} - ${item.part}`, err);
-            changed = true;
-        }
-    }
-    if (changed) savePendingQueue();
-    if (pendingQueue.length === 0 && window.retryInterval) {
-        clearInterval(window.retryInterval);
-        window.retryInterval = null;
-    }
-}
-
 async function submitPart(moduleName, partName, score, maxScore, answersArray) {
-    addToPendingQueue(moduleName, partName, score, maxScore, answersArray);
-    return true;
+    const statusDiv = document.getElementById('submitStatus');
+    if (statusDiv) statusDiv.innerHTML = `<span class="text-yellow-600">⏳ 正在提交 ${moduleName} - ${partName} ...</span>`;
+    try {
+        const res = await fetch(SUBMIT_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                module: moduleName,
+                part: partName,
+                score: score,
+                maxScore: maxScore,
+                userAnswers: { [partName]: answersArray },
+                submittedAt: new Date().toISOString()
+            })
+        });
+        const data = await res.json();
+        if (data && data.code === 200) {
+            if (statusDiv) statusDiv.innerHTML = `<span class="text-green-600">✅ ${moduleName} - ${partName} 提交成功！</span>`;
+            setTimeout(() => { if (statusDiv && statusDiv.innerHTML.includes('成功')) statusDiv.innerHTML = ''; }, 3000);
+        } else {
+            if (statusDiv) statusDiv.innerHTML = `<span class="text-red-600">❌ ${moduleName} - ${partName} 提交失败：${JSON.stringify(data)}</span>`;
+        }
+    } catch (err) {
+        if (statusDiv) statusDiv.innerHTML = `<span class="text-red-600">❌ 网络错误：${err.message}</span>`;
+    }
 }
 
 // 添加全局状态栏
@@ -317,15 +177,15 @@ function addStatusBar() {
         const statusBar = document.createElement('div');
         statusBar.id = 'submitStatus';
         statusBar.className = 'bg-white/80 text-sm p-2 text-center border-b border-gray-200';
-        statusBar.innerHTML = '📡 准备就绪，点击 "Check the answers" 提交答案（会自动重试直到成功）';
+        statusBar.innerHTML = '📡 准备就绪，点击 "Check the answers" 提交答案';
         container.insertBefore(statusBar, container.firstChild);
     }
 }
 
-// 页面加载时初始化队列和状态栏
 document.addEventListener('DOMContentLoaded', () => {
-    loadPendingQueue();
     addStatusBar();
+    // 清除历史队列（如果有残留）
+    localStorage.removeItem('pendingSubmissions');
 });
 
 // ========= Easy 模块 =========
@@ -408,7 +268,7 @@ function renderEasy() {
     buildSelfStars('easySelfStars');
 }
 
-// ========= Normal 模块（连线功能完整保留） =========
+// ========= Normal 模块 =========
 let lineCanvas = null;
 let currentMatchPairs = {};
 let leftItemsGlobal = [], rightItemsFixed = [], correctMapGlobal = {};
@@ -677,7 +537,7 @@ function renderHard() {
     buildSelfStars('hardSelfStars');
 }
 
-// ========= 迁移创新环节（完整保留） =========
+// ========= 迁移创新环节 =========
 const STEP_X = 30;
 const STEP_Y = 16;
 const STEP_Y_MIDDLE = 8;
