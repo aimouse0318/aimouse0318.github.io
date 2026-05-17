@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
     <style>
-        /* ========== 完整样式（与原版完全一致） ========== */
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
         body { font-family: 'Quicksand', sans-serif; background: linear-gradient(145deg, #c0e0ff 0%, #b2d3f0 100%); padding: 20px; min-height: 100vh; }
         .master-container { max-width: 1400px; margin: 0 auto; background: #fffef7; border-radius: 70px; box-shadow: 0 25px 45px rgba(0,0,0,0.2); overflow: hidden; }
@@ -188,7 +187,7 @@ async function startRecording(sentenceId) {
 function stopRecording(sentenceId) { const recorder = recorderInstances[sentenceId]; const startBtn = document.getElementById(`startRec_${sentenceId}`); if(recorder && recorder.state === 'recording') { recorder.stop(); if(startBtn) startBtn.classList.remove('recording'); delete recorderInstances[sentenceId]; } }
 function playMyRecording(sentenceId) { const blob = blobInstances[sentenceId]; const statusSpan = document.getElementById(`status_${sentenceId}`); if(blob) { const url = URL.createObjectURL(blob); const audio = new Audio(url); audio.play(); audio.onended = () => URL.revokeObjectURL(url); } else { if(statusSpan) statusSpan.innerHTML = '⚠️ 请先录音，再点击回放'; } }
 
-// ========= 学习理解 Part1 & Part2（完整保留） =========
+// ========= 学习理解 Part1 & Part2 =========
 async function renderPart1(){ 
     const container = document.getElementById('previewImagesContainer');
     container.className = 'preview-single';
@@ -220,36 +219,21 @@ async function renderPart2(){
     document.getElementById('grantMicBtn2')?.addEventListener('click', grantMicrophonePermission);
     let finishDiv = document.createElement('div'); finishDiv.className='self-eval-area'; finishDiv.innerHTML = `<p>⭐ 给我自己打打分 ⭐</p><div id="part2SelfStars"></div>`; subContainer.appendChild(finishDiv);
     buildSelfStars('part2SelfStars');
-}
-
-// ==================== 自动生成设备唯一ID ====================
-function getDeviceId() {
-    let deviceId = localStorage.getItem('device_id');
-    if (!deviceId) {
-        deviceId = 'pad_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
-        localStorage.setItem('device_id', deviceId);
-    }
-    return deviceId;
-}
-
-// ==================== 提交函数（正确格式：布尔数组 + device_id） ====================
+}// ==================== 提交函数（保证布尔数组） ====================
 const SUBMIT_API = 'https://quickform.cn/api/cu6ehjoiel';
 
 async function submitPart(moduleName, partName, score, maxScore, answersArray) {
-    const deviceId = getDeviceId();
     const statusDiv = document.getElementById('submitStatus');
     if (statusDiv) statusDiv.innerHTML = `<span class="text-yellow-600">⏳ 正在提交 ${moduleName} - ${partName} ...</span>`;
     try {
         const payload = {
-            device_id: deviceId,
             module: moduleName,
             part: partName,
             score: score,
             maxScore: maxScore,
-            userAnswers: { [partName]: answersArray },  // 确保 answersArray 是布尔数组
+            userAnswers: { [partName]: answersArray },
             submittedAt: new Date().toISOString()
         };
-        console.log('提交数据:', payload);
         const res = await fetch(SUBMIT_API, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -273,16 +257,14 @@ function addStatusBar() {
         const statusBar = document.createElement('div');
         statusBar.id = 'submitStatus';
         statusBar.className = 'bg-white/80 text-sm p-2 text-center border-b border-gray-200';
-        statusBar.innerHTML = '📡 准备就绪，点击 "Check the answers" 提交答案（自动识别设备）';
+        statusBar.innerHTML = '📡 准备就绪，点击 "Check the answers" 提交答案';
         container.insertBefore(statusBar, container.firstChild);
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     addStatusBar();
-    console.log('本设备ID:', getDeviceId());
-    // 清除旧队列残留
-    localStorage.removeItem('pendingSubmissions');
+    localStorage.removeItem('pendingSubmissions'); // 清除旧队列
 });
 
 // ========= Easy 模块 =========
@@ -365,7 +347,7 @@ function renderEasy() {
     buildSelfStars('easySelfStars');
 }
 
-// ========= Normal 模块（连线功能完整保留） =========
+// ========= Normal 模块 =========
 let lineCanvas = null;
 let currentMatchPairs = {};
 let leftItemsGlobal = [], rightItemsFixed = [], correctMapGlobal = {};
@@ -634,7 +616,7 @@ function renderHard() {
     buildSelfStars('hardSelfStars');
 }
 
-// ========= 迁移创新环节（完整保留） =========
+// ========= 迁移创新环节 =========
 const STEP_X = 30;
 const STEP_Y = 16;
 const STEP_Y_MIDDLE = 8;

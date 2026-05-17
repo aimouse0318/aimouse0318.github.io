@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>课堂练习 · 独立正确率大屏（按设备统计）</title>
+    <title>课堂练习 · 正确率大屏</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <style>
@@ -24,13 +24,13 @@
 <body>
     <div class="flex justify-between items-center mb-4">
         <div>
-            <h1 class="text-2xl font-bold">📊 课堂练习 · 独立正确率大屏</h1>
-            <p class="text-gray-500 text-sm">每3秒刷新 | 每个大题按设备去重统计</p>
+            <h1 class="text-2xl font-bold">📊 课堂练习 · 正确率大屏</h1>
+            <p class="text-gray-500 text-sm">每3秒刷新 | 每题正确率基于提交次数</p>
         </div>
         <button id="manualRefresh" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium">🔄 立即刷新</button>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" id="kpiArea"></div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" id="kpiArea"></div>
 
     <div class="card">
         <div class="font-semibold mb-2">📈 各模块整体正确率</div>
@@ -50,64 +50,43 @@
             Hard: { choice: { name: "单项选择（细节理解）", total: 4 }, fillBlanks: { name: "选词填空", total: 5 } }
         };
 
-        // 按设备去重统计每个部分的正确次数和唯一设备数
-        function aggregateByPartAndDevice(submissions) {
-            const groups = {}; // key: `${module}_${part}`
-            // 临时存储每个设备的答案，用于去重（同一设备同一部分只取第一次）
-            const devicePartAnswers = new Map(); // key: `${deviceId}_${module}_${part}`
-
-            // 先筛选出每个设备每个部分的第一次提交（按时间最早）
-            const sorted = [...submissions].sort((a,b) => new Date(a.submittedAt) - new Date(b.submittedAt));
-            for (const sub of sorted) {
-                const deviceId = sub.device_id;
+        function aggregateByPart(submissions) {
+            const groups = {};
+            for (const sub of submissions) {
                 const module = sub.module;
                 const part = sub.part;
-                if (!deviceId || !module || !part) continue;
-                const key = `${deviceId}_${module}_${part}`;
-                if (!devicePartAnswers.has(key)) {
-                    devicePartAnswers.set(key, sub);
-                }
-            }
-
-            // 聚合
-            const uniqueSubmissions = Array.from(devicePartAnswers.values());
-            for (const sub of uniqueSubmissions) {
-                const module = sub.module;
-                const part = sub.part;
+                if (!module || !part) continue;
                 const def = PART_DEF[module]?.[part];
                 if (!def) continue;
-                const groupKey = `${module}_${part}`;
-                if (!groups[groupKey]) {
-                    groups[groupKey] = {
+                const key = `${module}_${part}`;
+                if (!groups[key]) {
+                    groups[key] = {
                         module, part, title: def.name, totalQ: def.total,
-                        deviceCount: 0,
-                        correctCounts: new Array(def.total).fill(0)
+                        count: 0, correct: new Array(def.total).fill(0)
                     };
                 }
-                const group = groups[groupKey];
-                group.deviceCount++;
+                const group = groups[key];
+                group.count++;
                 const answers = sub.userAnswers?.[part];
                 if (Array.isArray(answers)) {
                     for (let i = 0; i < Math.min(answers.length, group.totalQ); i++) {
-                        if (answers[i] === true) group.correctCounts[i]++;
+                        if (answers[i] === true) group.correct[i]++;
                     }
                 }
             }
             return groups;
         }
 
-        function renderKPI(submissions, groups) {
-            const totalDevices = new Set(submissions.map(s => s.device_id).filter(Boolean)).size;
-            const totalParts = Object.keys(groups).length;
+        function renderKPI(submissions) {
+            const total = submissions.length;
             const modulesSet = new Set(submissions.map(s => s.module).filter(Boolean));
             let totalScore = 0, totalMax = 0;
             submissions.forEach(s => { totalScore += s.score || 0; totalMax += s.maxScore || 0; });
             const overall = totalMax ? (totalScore / totalMax * 100).toFixed(1) : 0;
             document.getElementById('kpiArea').innerHTML = `
-                <div class="card"><div class="stat-label">参与设备数</div><div class="stat-number">${totalDevices}</div></div>
+                <div class="card"><div class="stat-label">总提交次数</div><div class="stat-number">${total}</div></div>
                 <div class="card"><div class="stat-label">总体正确率</div><div class="stat-number">${overall}%</div></div>
                 <div class="card"><div class="stat-label">涉及模块</div><div class="stat-number">${modulesSet.size}</div></div>
-                <div class="card"><div class="stat-label">已答大题数</div><div class="stat-number">${totalParts}</div></div>
             `;
         }
 
@@ -115,29 +94,29 @@
             const order = ['Easy', 'Normal', 'Hard'];
             let html = '';
             for (const module of order) {
-                let moduleHtml = `<div class="card"><div class="flex items-center gap-2 mb-3"><span class="module-badge badge-${module}">${module}</span><span class="text-sm text-gray-500">各独立大题（按设备去重）</span></div>`;
+                let moduleHtml = `<div class="card"><div class="flex items-center gap-2 mb-3"><span class="module-badge badge-${module}">${module}</span><span class="text-sm text-gray-500">各独立大题</span></div>`;
                 let hasData = false;
                 for (const part in PART_DEF[module]) {
                     const key = `${module}_${part}`;
                     const group = groups[key];
-                    if (!group || group.deviceCount === 0) continue;
+                    if (!group || group.count === 0) continue;
                     hasData = true;
                     const totalQ = group.totalQ;
-                    const correctCounts = group.correctCounts;
-                    const deviceCount = group.deviceCount;
+                    const correctCounts = group.correct;
+                    const submitCount = group.count;
                     let partAvg = 0;
-                    for (let i = 0; i < totalQ; i++) partAvg += (correctCounts[i] / deviceCount) * 100;
+                    for (let i = 0; i < totalQ; i++) partAvg += (correctCounts[i] / submitCount) * 100;
                     partAvg = partAvg / totalQ;
                     moduleHtml += `<div class="subpart">
-                        <div class="font-semibold">📌 ${group.title} &nbsp; <span class="text-sm font-normal text-gray-500">整体正确率 ${partAvg.toFixed(1)}% (共 ${deviceCount} 台设备提交)</span></div>
+                        <div class="font-semibold">📌 ${group.title} &nbsp; <span class="text-sm font-normal text-gray-500">整体正确率 ${partAvg.toFixed(1)}% (共 ${submitCount} 次提交)</span></div>
                         <div class="mt-2 space-y-2">`;
                     for (let i = 0; i < totalQ; i++) {
-                        const rate = (correctCounts[i] / deviceCount) * 100;
+                        const rate = (correctCounts[i] / submitCount) * 100;
                         moduleHtml += `<div class="question-row">
                             <span class="text-sm font-medium">小题 ${i+1}</span>
                             <div class="flex items-center gap-3">
                                 <div class="progress-bar"><div class="progress-fill" style="width: ${rate}%;"></div></div>
-                                <span class="text-sm ${rate >= 60 ? 'text-green-600' : 'text-red-500'} font-medium">${rate.toFixed(1)}% (${correctCounts[i]}/${deviceCount})</span>
+                                <span class="text-sm ${rate >= 60 ? 'text-green-600' : 'text-red-500'} font-medium">${rate.toFixed(1)}% (${correctCounts[i]}/${submitCount})</span>
                             </div>
                         </div>`;
                     }
@@ -155,11 +134,10 @@
                 const resp = await fetch(API_URL);
                 const json = await resp.json();
                 const submissions = json.submissions || [];
-                const groups = aggregateByPartAndDevice(submissions);
-                renderKPI(submissions, groups);
+                const groups = aggregateByPart(submissions);
+                renderKPI(submissions);
                 renderDetails(groups);
 
-                // 模块整体正确率（基于所有提交，不分设备，但保持原有逻辑）
                 const moduleScores = {}, moduleMax = {};
                 submissions.forEach(s => {
                     const m = s.module;
