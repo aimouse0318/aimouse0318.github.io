@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>课堂练习 · 正确率大屏</title>
+    <title>课堂练习 · 小题正确率大屏</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <style>
@@ -24,8 +24,8 @@
 <body>
     <div class="flex justify-between items-center mb-4">
         <div>
-            <h1 class="text-2xl font-bold">📊 课堂练习 · 正确率大屏</h1>
-            <p class="text-gray-500 text-sm">每3秒刷新 | 每题正确率基于提交次数</p>
+            <h1 class="text-2xl font-bold">📊 课堂练习 · 小题正确率大屏</h1>
+            <p class="text-gray-500 text-sm">每3秒自动刷新 | 正确率基于提交次数</p>
         </div>
         <button id="manualRefresh" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium">🔄 立即刷新</button>
     </div>
@@ -44,14 +44,16 @@
         const API_URL = 'https://quickform.cn/api/cu6ehjoiel/all';
         let chart = null;
 
+        // 定义每个模块的每个部分题目数量
         const PART_DEF = {
             Easy: { choice: { name: "单项选择", total: 6 }, trueFalse: { name: "判断对错", total: 4 } },
             Normal: { matching: { name: "连线匹配", total: 8 }, choice: { name: "单项选择", total: 4 } },
             Hard: { choice: { name: "单项选择（细节理解）", total: 4 }, fillBlanks: { name: "选词填空", total: 5 } }
         };
 
+        // 聚合统计：每个部分独立统计，不依赖 device_id
         function aggregateByPart(submissions) {
-            const groups = {};
+            const groups = {}; // key: `${module}_${part}`
             for (const sub of submissions) {
                 const module = sub.module;
                 const part = sub.part;
@@ -61,8 +63,11 @@
                 const key = `${module}_${part}`;
                 if (!groups[key]) {
                     groups[key] = {
-                        module, part, title: def.name, totalQ: def.total,
-                        count: 0, correct: new Array(def.total).fill(0)
+                        module, part,
+                        title: def.name,
+                        totalQ: def.total,
+                        count: 0,
+                        correctCounts: new Array(def.total).fill(0)
                     };
                 }
                 const group = groups[key];
@@ -70,7 +75,7 @@
                 const answers = sub.userAnswers?.[part];
                 if (Array.isArray(answers)) {
                     for (let i = 0; i < Math.min(answers.length, group.totalQ); i++) {
-                        if (answers[i] === true) group.correct[i]++;
+                        if (answers[i] === true) group.correctCounts[i]++;
                     }
                 }
             }
@@ -78,13 +83,13 @@
         }
 
         function renderKPI(submissions) {
-            const total = submissions.length;
+            const totalSubmissions = submissions.length;
             const modulesSet = new Set(submissions.map(s => s.module).filter(Boolean));
             let totalScore = 0, totalMax = 0;
             submissions.forEach(s => { totalScore += s.score || 0; totalMax += s.maxScore || 0; });
             const overall = totalMax ? (totalScore / totalMax * 100).toFixed(1) : 0;
             document.getElementById('kpiArea').innerHTML = `
-                <div class="card"><div class="stat-label">总提交次数</div><div class="stat-number">${total}</div></div>
+                <div class="card"><div class="stat-label">总提交次数</div><div class="stat-number">${totalSubmissions}</div></div>
                 <div class="card"><div class="stat-label">总体正确率</div><div class="stat-number">${overall}%</div></div>
                 <div class="card"><div class="stat-label">涉及模块</div><div class="stat-number">${modulesSet.size}</div></div>
             `;
@@ -102,8 +107,9 @@
                     if (!group || group.count === 0) continue;
                     hasData = true;
                     const totalQ = group.totalQ;
-                    const correctCounts = group.correct;
+                    const correctCounts = group.correctCounts;
                     const submitCount = group.count;
+                    // 计算该大题的“整体正确率”（每题正确率的平均值）
                     let partAvg = 0;
                     for (let i = 0; i < totalQ; i++) partAvg += (correctCounts[i] / submitCount) * 100;
                     partAvg = partAvg / totalQ;
@@ -138,6 +144,7 @@
                 renderKPI(submissions);
                 renderDetails(groups);
 
+                // 绘制各模块整体正确率柱状图
                 const moduleScores = {}, moduleMax = {};
                 submissions.forEach(s => {
                     const m = s.module;
