@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>课堂练习 · 小题正确率大屏（代理版）</title>
+    <title>课堂练习 · 小题正确率大屏</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <style>
@@ -19,14 +19,13 @@
         .question-row { display: flex; justify-content: space-between; align-items: center; background: white; border-radius: 0.75rem; padding: 0.5rem 1rem; margin-bottom: 0.5rem; }
         .progress-bar { width: 140px; height: 6px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
         .progress-fill { height: 100%; background: #10b981; border-radius: 9999px; width: 0%; }
-        .debug-info { font-family: monospace; font-size: 0.7rem; background: #fef9c3; padding: 8px; border-radius: 8px; margin-top: 10px; word-break: break-all; display: none; }
     </style>
 </head>
 <body>
     <div class="flex justify-between items-center mb-4">
         <div>
             <h1 class="text-2xl font-bold">📊 课堂练习 · 小题正确率大屏</h1>
-            <p class="text-gray-500 text-sm">每30秒自动刷新 | 通过代理获取数据 | 每题正确率基于提交次数</p>
+            <p class="text-gray-500 text-sm">每30秒自动刷新 | 通过公共代理获取数据</p>
         </div>
         <button id="manualRefresh" class="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full text-sm font-medium">🔄 立即刷新</button>
     </div>
@@ -40,11 +39,10 @@
 
     <div id="detailsContainer" class="space-y-4"></div>
     <div id="updateTime" class="text-center text-xs text-gray-400 mt-6"></div>
-    <div id="debugInfo" class="debug-info"></div>
 
     <script>
         const TARGET_URL = 'https://quickform.cn/api/cu6ehjoiel/all';
-        const PROXY = 'https://api.allorigins.win/raw?url=';
+        const PROXY_URL = 'https://corsproxy.io/?' + encodeURIComponent(TARGET_URL);
         let chart = null;
 
         const PART_DEF = {
@@ -53,105 +51,89 @@
             Hard: { choice: { name: "单项选择（细节理解）", total: 4 }, fillBlanks: { name: "选词填空", total: 5 } }
         };
 
-        function aggregateByPart(submissions) {
-            const groups = {};
-            for (const sub of submissions) {
-                const module = sub.module;
-                const part = sub.part;
-                if (!module || !part) continue;
-                const def = PART_DEF[module]?.[part];
-                if (!def) continue;
-                const key = `${module}_${part}`;
-                if (!groups[key]) {
-                    groups[key] = {
-                        module, part, title: def.name, totalQ: def.total,
-                        count: 0, correctCounts: new Array(def.total).fill(0)
-                    };
-                }
-                const group = groups[key];
-                group.count++;
-                const answers = sub.userAnswers?.[part];
-                if (Array.isArray(answers)) {
-                    for (let i = 0; i < Math.min(answers.length, group.totalQ); i++) {
-                        if (answers[i] === true) group.correctCounts[i]++;
-                    }
-                }
-            }
-            return groups;
-        }
-
-        function renderKPI(submissions) {
-            const total = submissions.length;
-            const modulesSet = new Set(submissions.map(s => s.module).filter(Boolean));
-            let totalScore = 0, totalMax = 0;
-            submissions.forEach(s => { totalScore += s.score || 0; totalMax += s.maxScore || 0; });
-            const overall = totalMax ? (totalScore / totalMax * 100).toFixed(1) : 0;
-            document.getElementById('kpiArea').innerHTML = `
-                <div class="card"><div class="stat-label">总提交次数</div><div class="stat-number">${total}</div></div>
-                <div class="card"><div class="stat-label">总体正确率</div><div class="stat-number">${overall}%</div></div>
-                <div class="card"><div class="stat-label">涉及模块</div><div class="stat-number">${modulesSet.size}</div></div>
-            `;
-        }
-
-        function renderDetails(groups) {
-            const order = ['Easy', 'Normal', 'Hard'];
-            let html = '';
-            for (const module of order) {
-                let moduleHtml = `<div class="card"><div class="flex items-center gap-2 mb-3"><span class="module-badge badge-${module}">${module}</span><span class="text-sm text-gray-500">各独立大题</span></div>`;
-                let hasData = false;
-                for (const part in PART_DEF[module]) {
-                    const key = `${module}_${part}`;
-                    const group = groups[key];
-                    if (!group || group.count === 0) continue;
-                    hasData = true;
-                    const totalQ = group.totalQ;
-                    const correctCounts = group.correctCounts;
-                    const count = group.count;
-                    let partAvg = 0;
-                    for (let i = 0; i < totalQ; i++) partAvg += (correctCounts[i] / count) * 100;
-                    partAvg = partAvg / totalQ;
-                    moduleHtml += `<div class="subpart">
-                        <div class="font-semibold">📌 ${group.title} &nbsp; <span class="text-sm font-normal text-gray-500">整体正确率 ${partAvg.toFixed(1)}% (共 ${count} 次提交)</span></div>
-                        <div class="mt-2 space-y-2">`;
-                    for (let i = 0; i < totalQ; i++) {
-                        const rate = (correctCounts[i] / count) * 100;
-                        moduleHtml += `<div class="question-row">
-                            <span class="text-sm font-medium">小题 ${i+1}</span>
-                            <div class="flex items-center gap-3">
-                                <div class="progress-bar"><div class="progress-fill" style="width: ${rate}%;"></div></div>
-                                <span class="text-sm ${rate >= 60 ? 'text-green-600' : 'text-red-500'} font-medium">${rate.toFixed(1)}% (${correctCounts[i]}/${count})</span>
-                            </div>
-                        </div>`;
-                    }
-                    moduleHtml += `</div></div>`;
-                }
-                if (!hasData) moduleHtml += `<div class="text-gray-400 text-sm py-3">暂无提交数据</div>`;
-                moduleHtml += `</div>`;
-                html += moduleHtml;
-            }
-            document.getElementById('detailsContainer').innerHTML = html;
-        }
-
         async function refreshDashboard() {
             try {
-                const proxyUrl = PROXY + encodeURIComponent(TARGET_URL);
-                const resp = await fetch(proxyUrl);
+                const resp = await fetch(PROXY_URL);
                 if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
                 const json = await resp.json();
-                let submissions = [];
-                if (json.submissions && Array.isArray(json.submissions)) {
-                    submissions = json.submissions;
-                } else if (Array.isArray(json)) {
-                    submissions = json;
-                } else if (json.data && Array.isArray(json.data)) {
-                    submissions = json.data;
-                } else {
-                    throw new Error('无法解析数据格式');
+                let submissions = json.submissions || [];
+                
+                // 聚合统计
+                const groups = {};
+                for (const sub of submissions) {
+                    const module = sub.module;
+                    const part = sub.part;
+                    if (!module || !part) continue;
+                    const def = PART_DEF[module]?.[part];
+                    if (!def) continue;
+                    const key = `${module}_${part}`;
+                    if (!groups[key]) {
+                        groups[key] = {
+                            module, part, title: def.name, totalQ: def.total,
+                            count: 0, correctCounts: new Array(def.total).fill(0)
+                        };
+                    }
+                    const group = groups[key];
+                    group.count++;
+                    const answers = sub.userAnswers?.[part];
+                    if (Array.isArray(answers)) {
+                        for (let i = 0; i < Math.min(answers.length, group.totalQ); i++) {
+                            if (answers[i] === true) group.correctCounts[i]++;
+                        }
+                    }
                 }
-                const groups = aggregateByPart(submissions);
-                renderKPI(submissions);
-                renderDetails(groups);
 
+                // KPI
+                const totalSubmissions = submissions.length;
+                const modulesSet = new Set(submissions.map(s => s.module).filter(Boolean));
+                let totalScore = 0, totalMax = 0;
+                submissions.forEach(s => { totalScore += s.score || 0; totalMax += s.maxScore || 0; });
+                const overallAvg = totalMax ? (totalScore / totalMax * 100).toFixed(1) : 0;
+                document.getElementById('kpiArea').innerHTML = `
+                    <div class="card"><div class="stat-label">总提交次数</div><div class="stat-number">${totalSubmissions}</div></div>
+                    <div class="card"><div class="stat-label">总体正确率</div><div class="stat-number">${overallAvg}%</div></div>
+                    <div class="card"><div class="stat-label">涉及模块</div><div class="stat-number">${modulesSet.size}</div></div>
+                `;
+
+                // 详细统计
+                const order = ['Easy', 'Normal', 'Hard'];
+                let detailsHtml = '';
+                for (const module of order) {
+                    let moduleHtml = `<div class="card"><div class="flex items-center gap-2 mb-3"><span class="module-badge badge-${module}">${module}</span><span class="text-sm text-gray-500">各独立大题</span></div>`;
+                    let hasData = false;
+                    for (const part in PART_DEF[module]) {
+                        const key = `${module}_${part}`;
+                        const group = groups[key];
+                        if (!group || group.count === 0) continue;
+                        hasData = true;
+                        const totalQ = group.totalQ;
+                        const correctCounts = group.correctCounts;
+                        const count = group.count;
+                        let partAvg = 0;
+                        for (let i = 0; i < totalQ; i++) partAvg += (correctCounts[i] / count) * 100;
+                        partAvg = partAvg / totalQ;
+                        moduleHtml += `<div class="subpart">
+                            <div class="font-semibold">📌 ${group.title} &nbsp; <span class="text-sm font-normal text-gray-500">整体正确率 ${partAvg.toFixed(1)}% (共 ${count} 次提交)</span></div>
+                            <div class="mt-2 space-y-2">`;
+                        for (let i = 0; i < totalQ; i++) {
+                            const rate = (correctCounts[i] / count) * 100;
+                            moduleHtml += `<div class="question-row">
+                                <span class="text-sm font-medium">小题 ${i+1}</span>
+                                <div class="flex items-center gap-3">
+                                    <div class="progress-bar"><div class="progress-fill" style="width: ${rate}%;"></div></div>
+                                    <span class="text-sm ${rate >= 60 ? 'text-green-600' : 'text-red-500'} font-medium">${rate.toFixed(1)}% (${correctCounts[i]}/${count})</span>
+                                </div>
+                            </div>`;
+                        }
+                        moduleHtml += `</div></div>`;
+                    }
+                    if (!hasData) moduleHtml += `<div class="text-gray-400 text-sm py-3">暂无提交数据</div>`;
+                    moduleHtml += `</div>`;
+                    detailsHtml += moduleHtml;
+                }
+                document.getElementById('detailsContainer').innerHTML = detailsHtml;
+
+                // 柱状图
                 const moduleScores = {}, moduleMax = {};
                 submissions.forEach(s => {
                     const m = s.module;
@@ -173,17 +155,14 @@
                     chart.setOption({ xAxis: { data: mods }, series: [{ data: accs }] });
                 }
                 document.getElementById('updateTime').innerText = `最后更新: ${new Date().toLocaleString()}`;
-                document.getElementById('debugInfo').style.display = 'none';
             } catch (err) {
                 console.error(err);
-                document.getElementById('detailsContainer').innerHTML = `<div class="card text-red-500">加载失败: ${err.message}</div>`;
-                document.getElementById('debugInfo').style.display = 'block';
-                document.getElementById('debugInfo').innerHTML = `错误详情：${err.message}<br>请确保网络通畅，或稍后手动刷新。`;
+                document.getElementById('detailsContainer').innerHTML = `<div class="card text-red-500">加载失败: ${err.message}<br>请稍后手动刷新或检查网络。</div>`;
             }
         }
 
         refreshDashboard();
-        setInterval(refreshDashboard, 30000); // 30秒刷新一次，避免429
+        setInterval(refreshDashboard, 30000);
         document.getElementById('manualRefresh').addEventListener('click', refreshDashboard);
     </script>
 </body>
